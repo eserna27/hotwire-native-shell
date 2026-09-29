@@ -126,8 +126,11 @@ def main() -> None:
         if phrase not in contract:
             fail(f"contract missing {phrase}")
     native_ui = (ROOT / "docs" / "NATIVE_UI.md").read_text()
-    if "Bottom tabs" not in native_ui or "overflow-menu" not in native_ui:
+    if "Bottom tabs" not in native_ui or "overflow-menu" not in native_ui or "bridge--tabs" not in native_ui:
         fail("native UI tabs section")
+    bridges_doc = (ROOT / "docs" / "BRIDGES.md").read_text()
+    if 'static component = "tabs"' not in bridges_doc:
+        fail("bridges doc missing tabs controller")
 
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text()
     if 'applicationId = "blog.itsjustmy.app"' not in gradle:
@@ -138,9 +141,13 @@ def main() -> None:
         fail("Hotwire Native Android 1.3.1")
 
     registrar = (ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "BridgeRegistrar.kt").read_text()
-    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu"):
+    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu", "tabs"):
         if f'"{component}"' not in registrar:
             fail(f"missing bridge registration {component}")
+    if not (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "TabsComponent.kt"
+    ).is_file():
+        fail("missing Android TabsComponent")
 
     ruby = (ROOT / "rails-example" / "lib" / "native_config.rb").read_text()
     if "flavors/itsjustmy/assets/native/config.json" not in ruby:
@@ -158,6 +165,8 @@ def main() -> None:
         fail("Hotwire Native iOS 1.3.1")
     if "../flavors/itsjustmy/assets/native" not in ios_project:
         fail("iOS flavor folder reference")
+    if "TabsComponent.swift in Sources" not in ios_project:
+        fail("iOS TabsComponent is not in the target")
     if "CODE_SIGN_ENTITLEMENTS" in ios_project or "aps-environment" in ios_project:
         fail("iOS push entitlement")
 
@@ -175,7 +184,7 @@ def main() -> None:
 
     bridge_dir = ROOT / "ios" / "HotwireNativeShell" / "Bridge"
     bridge_swift = "\n".join(path.read_text() for path in bridge_dir.glob("*.swift"))
-    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu"):
+    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu", "tabs"):
         if f'"{component}"' not in bridge_swift:
             fail(f"missing iOS bridge registration {component}")
     registrar_swift = (bridge_dir / "BridgeRegistrar.swift").read_text()
@@ -185,6 +194,7 @@ def main() -> None:
         "HapticComponent",
         "MenuComponent",
         "OverflowMenuComponent",
+        "TabsComponent",
     ):
         if f"{component_type}.self" not in registrar_swift:
             fail(f"missing iOS bridge type {component_type}")

@@ -10,21 +10,22 @@ import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
 import dev.hotwire.navigation.tabs.navigatorConfigurations
 import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.nativeshell.config.NativeConfig
+import dev.hotwire.nativeshell.config.PresentedTabs
 import dev.hotwire.nativeshell.config.ShellTabs
-import dev.hotwire.nativeshell.config.TabResolution
 import java.util.Locale
 
 class MainActivity : HotwireActivity() {
     private val config get() = ShellApplication.current
+    private var bottomNavigationController: HotwireBottomNavigationController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        TabChrome.commitPending()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val resolution = resolvedTabs()
-        logTabs(resolution)
-
-        if (resolution.tabs.size < 2) {
+        val presented = presented()
+        logTabs(presented)
+        if (presented.resolution.tabs.size < 2) {
             setContentView(R.layout.activity_main)
             findViewById<View>(R.id.main_nav_host).applyDefaultImeWindowInsets()
             return
@@ -32,41 +33,52 @@ class MainActivity : HotwireActivity() {
 
         setContentView(R.layout.activity_main_tabs)
         findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
-
-        HotwireBottomNavigationController(
+        val controller = HotwireBottomNavigationController(
             activity = this,
             view = findViewById(R.id.bottom_nav),
             lazyLoadTabs = true
-        ).load(ShellTabs.from(this, config, resolution.tabs))
+        )
+        bottomNavigationController = controller
+        val index = presented.selectedIndex.coerceIn(0, presented.resolution.tabs.lastIndex)
+        controller.load(ShellTabs.from(this, config, presented.resolution.tabs), index)
     }
 
     override fun navigatorConfigurations(): List<NavigatorConfiguration> {
         val shellConfig = ShellApplication.current
-        val resolution = shellConfig.resolveTabs(deviceLanguage())
-        if (resolution.tabs.size < 2) {
+        val presented = TabChrome.presented(shellConfig, deviceLanguage())
+        if (presented.resolution.tabs.size < 2) {
             return listOf(
                 NavigatorConfiguration(
                     name = "main",
-                    startLocation = resolution.tabs.firstOrNull()?.location ?: shellConfig.startLocation,
+                    startLocation = presented.resolution.tabs.firstOrNull()?.location ?: shellConfig.startLocation,
                     navigatorHostId = R.id.main_nav_host
                 )
             )
         }
-        return ShellTabs.from(this, shellConfig, resolution.tabs).navigatorConfigurations
+        return ShellTabs.from(this, shellConfig, presented.resolution.tabs).navigatorConfigurations
     }
 
-    private fun resolvedTabs(): TabResolution {
-        return config.resolveTabs(deviceLanguage())
+    fun selectTabIfNeeded(index: Int) {
+        val controller = bottomNavigationController ?: return
+        if (controller.tabs.isEmpty()) return
+        val safe = index.coerceIn(0, controller.tabs.lastIndex)
+        if (controller.view.selectedItemId == safe) return
+        controller.selectTab(safe)
     }
 
-    private fun logTabs(resolution: TabResolution) {
+    private fun presented(): PresentedTabs {
+        return TabChrome.presented(config, deviceLanguage())
+    }
+
+    private fun logTabs(presented: PresentedTabs) {
+        val resolution = presented.resolution
         if (resolution.dropped > 0) {
-            Log.w(TAG, "Ignored ${resolution.dropped} invalid tab entries in /native/config.")
+            Log.w(TAG, "Ignored ${resolution.dropped} invalid tab entries.")
         }
         if (resolution.overflow > 0) {
             Log.w(
                 TAG,
-                "Config has more than ${NativeConfig.MAX_TABS} valid tabs; showing the first ${NativeConfig.MAX_TABS}."
+                "Tab list has more than ${NativeConfig.MAX_TABS} valid tabs; showing the first ${NativeConfig.MAX_TABS}."
             )
         }
         if (resolution.tabs.size < 2) {

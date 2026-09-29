@@ -76,7 +76,7 @@ The canonical copy is [`flavors/itsjustmy/assets/native/config.json`](../flavors
 | `name` | yes | Short client id. Sent as the Hotwire user-agent prefix (`itsjustmy;`). |
 | `base_url` | yes | HTTPS origin of the Rails app, no trailing path. |
 | `start_path` | no | Path opened when no usable tab supplies a start location. Default `/`. |
-| `tabs` | no | Bottom tabs, in order. Missing, `[]`, or fewer than two usable entries means one navigator and no tab bar. |
+| `tabs` | no | Cold-start bottom tabs, in order, shown until a page connects the `tabs` bridge. Missing, `[]`, or fewer than two usable entries means one navigator and no tab bar. |
 | `bridges` | no | Which native bridge components the shell may register. Missing flags are off. |
 | `push.enabled` | no | Whether the client wants push. Default `false`. |
 | `push.topics` | no | Topic names reserved for a later FCM subscription. Strings only. |
@@ -87,11 +87,13 @@ The shell ignores unknown keys. Add fields when you need them. Do not rename or 
 
 ### Tabs
 
-`tabs` is an ordered list. Each usable entry becomes its own navigator stack: `HotwireBottomNavigationController` on Android and `HotwireTabBarController` on iOS. The shell reads the list at cold start from the bundled or cached document. Rails can change it without a store build; the next cold start after a successful `GET /native/config` picks it up.
+`tabs` on this document is the cold-start list. The shell shows it before any page has connected the `tabs` bridge. It is not a bridge flag. The page replaces the list by sending `connect` from the Stimulus controller in [BRIDGES.md](BRIDGES.md). The markup is in [NATIVE_UI.md](NATIVE_UI.md). Changing either the document or the markup needs no store build.
+
+Each usable entry becomes its own navigator stack: `HotwireBottomNavigationController` on Android and `HotwireTabBarController` on iOS. The same resolved list, sent again from a later page, only changes which tab is selected. A different list rebuilds those navigators.
 
 Two usable tabs are the minimum that shows a bar. Zero or one keeps the single navigator. A lone usable tab supplies that navigator's start location. With zero, the shell opens `start_path`.
 
-The shell keeps at most five tabs, which is Material's bottom-bar limit and the usual iOS tab bar before a More item. Further usable entries are ignored. An entry that fails the rules below is skipped. A bad entry does not reject the rest of `/native/config`, and it does not crash the app. A `tabs` value that is not an array is treated as no tabs.
+The shell keeps at most five tabs, which is Material's bottom-bar limit and the usual iOS tab bar before a More item. Further usable entries are ignored. An entry that fails the rules below is skipped. A bad entry does not reject the rest of `/native/config`, and it does not crash the app. A `tabs` value that is not an array is treated as no tabs on this document. On the bridge, a missing `tabs` key or a non-array leaves the current bar alone, and a present array is applied even when every entry is skipped.
 
 | Field | Required | Meaning |
 | --- | --- | --- |
@@ -103,6 +105,7 @@ The shell keeps at most five tabs, which is Material's bottom-bar limit and the 
 | `icon` | no | Shared catalog name. Default `home`. Unknown names use `home`. |
 | `sf_symbol` | no | iOS-only SF Symbol, such as `info.circle`. Used when the system can draw it. Unknown names fall back to `icon`. |
 | `android_icon` | no | Android drawable resource name already in the APK, such as `ic_tab_profile`. Unknown names fall back to `icon`. |
+| `active` | no | Bridge payload only. `true` or the string `"true"` selects that tab. The first kept tab with this set wins. Config entries omit it, so cold start selects the first tab. |
 
 `title` stays a string in the bundled file so a shell that only decodes a string can still read the tab. A locale object in `title` is accepted by this shell. An older shell that requires a string will refuse the whole remote document and keep its previous copy. Prefer a string `title` plus `titles` when both shells are in the field. `titles`, `url`, `sf_symbol`, and `android_icon` are extra keys. A shell that does not know them ignores them.
 
@@ -163,7 +166,7 @@ itsjustmy bundles three tabs for real public routes (`/`, `/acerca`, `/users/sig
 
 Path configuration is a separate document. It still decides `context` and pull-to-refresh for every visit, including a tab's start path and later pushes inside that tab. A `modal` rule presents that visit from the tab's navigator. It does not switch tabs. Android's controller hides the bottom bar on modal screens and while the keyboard is up. Tabs are not declared in `/configurations/android_v1.json` or `ios_v1.json`.
 
-`menu` and `overflow-menu` stay registered either way. They add the current page's ellipsis and action sheet to that tab's top bar. They are not the tab bar, and the tab bar does not emit bridge messages. See [NATIVE_UI.md](NATIVE_UI.md).
+`menu` and `overflow-menu` stay registered either way. They add the current page's ellipsis and action sheet to that tab's top bar. The `tabs` component is registered with them and is the live source of the bar after the first `connect`. See [NATIVE_UI.md](NATIVE_UI.md).
 
 ### Bridges
 
@@ -181,7 +184,7 @@ Boolean flags. The native component name (the Stimulus `static component` value)
 
 A flag that is `false` or absent is not registered, so it does not show up in the `bridge-components:` user-agent list. The web bridge then leaves the HTML in place. See [BRIDGES.md](BRIDGES.md).
 
-`menu` and `overflow-menu` are not flags. Both shells always register them so the native navigation bar can host the site's menu. The markup and the title rules are in [NATIVE_UI.md](NATIVE_UI.md).
+`menu`, `overflow-menu`, and `tabs` are not flags. Both shells always register them. `menu` and `overflow-menu` host the site's menu on the top bar. `tabs` hosts the bottom bar. The markup is in [NATIVE_UI.md](NATIVE_UI.md).
 
 If a reserved flag is `true` and the shell has no component yet, Android and iOS log a warning and still do not register it. The iOS stubs for the three itsjustmy bridges match the Android ones, including the placeholder notification token.
 

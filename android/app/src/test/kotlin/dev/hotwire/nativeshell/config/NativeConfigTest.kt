@@ -2,6 +2,7 @@ package dev.hotwire.nativeshell.config
 
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -156,6 +157,70 @@ class NativeConfigTest {
         assertEquals("", tab.androidIcon)
         assertEquals("http://10.0.2.2:9292/", tab.location)
         assertEquals(NativeConfig.FALLBACK_LOCATION, config.locationFor(""))
+    }
+
+    @Test
+    fun bridgePayloadSelectsTheFirstKeptActiveTab() {
+        val presented = parsePresentedTabs(
+            """
+            {"tabs":[
+              {"id":"","title":"Bad","path":"/","active":true},
+              {"id":"home","title":"Home","path":"/","active":false},
+              {"id":"about","title":"About","path":"/acerca","active":"true"}
+            ]}
+            """.trimIndent(),
+            "https://itsjustmy.blog",
+            "en"
+        )
+        checkNotNull(presented)
+        assertEquals(listOf("home", "about"), presented.resolution.tabs.map { it.id })
+        assertEquals(1, presented.selectedIndex)
+        assertEquals(1, presented.resolution.dropped)
+
+        val duplicate = parsePresentedTabs(
+            """
+            {"tabs":[
+              {"id":"home","title":"Home","path":"/","active":false},
+              {"id":"home","title":"Other","path":"/acerca","active":true}
+            ]}
+            """.trimIndent(),
+            "https://itsjustmy.blog",
+            "en"
+        )
+        checkNotNull(duplicate)
+        assertEquals("https://itsjustmy.blog/", duplicate.resolution.tabs.single().location)
+        assertEquals(0, duplicate.selectedIndex)
+    }
+
+    @Test
+    fun bridgePayloadWithoutAnArrayLeavesTheBarAlone() {
+        assertNull(parsePresentedTabs("{}", "https://itsjustmy.blog", "en"))
+        assertNull(parsePresentedTabs("""{"tabs":{"id":"home"}}""", "https://itsjustmy.blog", "en"))
+        assertNull(parsePresentedTabs("[]", "https://itsjustmy.blog", "en"))
+        assertNull(parsePresentedTabs("not json", "https://itsjustmy.blog", "en"))
+    }
+
+    @Test
+    fun emptyBridgeArrayClearsTheBarAndActivePastTheCapIsDropped() {
+        val empty = parsePresentedTabs("""{"tabs":[]}""", "https://itsjustmy.blog", "en")
+        checkNotNull(empty)
+        assertTrue(empty.resolution.tabs.isEmpty())
+        assertEquals(0, empty.selectedIndex)
+
+        val many = (1..6).joinToString(",") { index ->
+            val active = if (index == 6) ""","active":true""" else ""
+            """{"id":"t$index","title":"Tab $index","path":"/$index"$active}"""
+        }
+        val overflow = parsePresentedTabs(
+            """{"tabs":[$many]}""",
+            "https://itsjustmy.blog",
+            "en"
+        )
+        checkNotNull(overflow)
+        assertEquals(5, overflow.resolution.tabs.size)
+        assertEquals(1, overflow.resolution.overflow)
+        assertEquals(0, overflow.selectedIndex)
+        assertEquals("t5", overflow.resolution.tabs.last().id)
     }
 
     private fun decode(body: String): NativeConfig {

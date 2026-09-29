@@ -7,12 +7,16 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.put
 import java.net.URI
 
@@ -41,28 +45,14 @@ data class NativeConfig(
     }
 
     /**
-     * Tabs the shell will actually show. Fewer than two means one navigator
+     * Cold-start tabs from this document. Fewer than two means one navigator
      * and no bottom bar; a single kept tab still supplies that navigator's
      * start location. At most [MAX_TABS] are kept, in document order.
+     *
+     * The `tabs` bridge replaces this list once a page connects.
      */
     fun resolveTabs(languageTag: String): TabResolution {
-        val seen = mutableSetOf<String>()
-        val valid = mutableListOf<ResolvedTab>()
-        var dropped = 0
-        for (tab in tabs) {
-            val resolved = tab.resolve(baseUrl, languageTag)
-            if (resolved == null || !seen.add(resolved.id)) {
-                dropped += 1
-                continue
-            }
-            valid += resolved
-        }
-        val overflow = (valid.size - MAX_TABS).coerceAtLeast(0)
-        return TabResolution(
-            tabs = valid.take(MAX_TABS),
-            dropped = dropped,
-            overflow = overflow
-        )
+        return presentTabs(baseUrl, tabs.map { it to false }, languageTag).resolution
     }
 
     companion object {
@@ -76,6 +66,66 @@ data class TabResolution(
     val dropped: Int,
     val overflow: Int
 )
+
+data class PresentedTabs(
+    val resolution: TabResolution,
+    val selectedIndex: Int
+)
+
+private val bridgeJson = Json { ignoreUnknownKeys = true }
+
+/**
+ * Parses a `tabs` bridge `connect` payload. Returns null when `tabs` is
+ * missing or the body is not an object, so a bad message leaves the current
+ * bar alone. A present array is applied even if every entry is skipped.
+ */
+fun parsePresentedTabs(jsonData: String, baseUrl: String, languageTag: String): PresentedTabs? {
+    val root = runCatching { bridgeJson.parseToJsonElement(jsonData) }.getOrNull() as? JsonObject ?: return null
+    val tabsElement = root["tabs"] ?: return null
+    val array = tabsElement as? JsonArray ?: return null
+    val items = array.map { element ->
+        val tab = runCatching { bridgeJson.decodeFromJsonElement(NativeTabSerializer, element) }
+            .getOrDefault(NativeTab())
+        tab to element.isActive()
+    }
+    return presentTabs(baseUrl, items, languageTag)
+}
+
+fun presentTabs(
+    baseUrl: String,
+    items: List<Pair<NativeTab, Boolean>>,
+    languageTag: String
+): PresentedTabs {
+    val seen = mutableSetOf<String>()
+    val valid = mutableListOf<Pair<ResolvedTab, Boolean>>()
+    var dropped = 0
+    for ((tab, active) in items) {
+        val resolved = tab.resolve(baseUrl, languageTag)
+        if (resolved == null || !seen.add(resolved.id)) {
+            dropped += 1
+            continue
+        }
+        valid += resolved to active
+    }
+    val overflow = (valid.size - NativeConfig.MAX_TABS).coerceAtLeast(0)
+    val kept = valid.take(NativeConfig.MAX_TABS)
+    val selected = kept.indexOfFirst { it.second }.let { if (it < 0) 0 else it }
+    return PresentedTabs(
+        resolution = TabResolution(
+            tabs = kept.map { it.first },
+            dropped = dropped,
+            overflow = overflow
+        ),
+        selectedIndex = selected
+    )
+}
+
+private fun JsonElement.isActive(): Boolean {
+    val primitive = this as? JsonObject
+    val value = primitive?.get("active") as? JsonPrimitive ?: return false
+    if (value.booleanOrNull == true) return true
+    return value.isString && value.content.equals("true", ignoreCase = true)
+}
 
 data class ResolvedTab(
     val id: String,

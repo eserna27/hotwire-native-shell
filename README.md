@@ -14,7 +14,7 @@ A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rail
 - One Swift app on [Hotwire Native iOS 1.3.1](https://github.com/hotwired/hotwire-native-ios/releases/tag/1.3.1) (`HotwireNative` via Swift Package Manager).
 - A stable JSON contract, plus Hotwire's own path-configuration file.
 - A flavor per client on Android. iOS v1 is one target that bundles the itsjustmy flavor. Both use bundle id `blog.itsjustmy.app`.
-- Native navigation chrome: `menu` and `overflow-menu` are always registered. Stub bridges for notification token, share, and haptic. Camera, biometric, clipboard, and file download stay off. The Rails rules for hiding the HTML navbar and the title suffix are in [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
+- Native navigation chrome: `menu`, `overflow-menu`, and `tabs` are always registered. Stub bridges for notification token, share, and haptic. Camera, biometric, clipboard, and file download stay off. The Rails rules for hiding the HTML navbar, the title suffix, and the tab markup are in [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 
 ## What this is not
 
@@ -88,7 +88,7 @@ rails-example/            sketch that serves GET /native/config
 
 Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md). The file above is [`flavors/itsjustmy/assets/native/config.json`](flavors/itsjustmy/assets/native/config.json). Android and iOS both package it for offline launch and refresh it from the server when they can.
 
-`tabs` is optional. Two or more usable entries turn on a native bottom bar, one navigator stack per tab, without a new build. Zero or one keeps the single navigator. The shell keeps at most five and skips a bad entry instead of crashing. `icon` is a shared name (`home`, `posts`, `search`, `profile`, `info`). `sf_symbol` and `android_icon` are optional per-platform overrides. `titles` is an `es` / `en` (or other language) map; a string `title` is the fallback. The three itsjustmy paths above are live public routes.
+`tabs` in that JSON is the cold-start bar, used until the first page connects the always-registered `tabs` bridge. The bridge is how Rails declares the live tabs (id, title, icon, path, and which one is active). Two or more usable entries turn on a native bottom bar, one navigator stack per tab, without a new build. Zero or one keeps the single navigator. The shell keeps at most five and skips a bad entry instead of crashing. `icon` is a shared name (`home`, `posts`, `search`, `profile`, `info`). `sf_symbol` and `android_icon` are optional per-platform overrides. `titles` is an `es` / `en` (or other language) map; a string `title` is the fallback. The three itsjustmy paths above are live public routes. The Stimulus controller and the HTML are in [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 
 Hotwire navigation rules (modal `/new` and `/edit`, pull to refresh) are `GET /configurations/android_v1.json` on Android and `GET /configurations/ios_v1.json` on iOS. They are not part of `/native/config`.
 

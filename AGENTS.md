@@ -76,7 +76,7 @@ xcodebuild \
 Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 
 1. Copy `flavors/itsjustmy` to `flavors/<name>`.
-2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path` or `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
+2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path`, optional cold-start `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
 3. In `android/app/build.gradle.kts`, next to `itsjustmy`, add a product flavor on dimension `client` with that client's `applicationId`, and set `assets.srcDir` to `../flavors/<name>/assets`.
 4. Add `android/app/src/<name>/res/values/strings.xml` with `app_name`, and a launcher icon. Copy the itsjustmy launcher assets until that client has its own icon.
 5. That client's Rails app must serve `GET /native/config`, `GET /configurations/android_v1.json`, and `GET /configurations/ios_v1.json`. The JSON must match [docs/CONTRACT.md](docs/CONTRACT.md). Start from [rails-example/](rails-example/README.md).
@@ -86,8 +86,8 @@ Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 ## Rails contract reminders
 
 - Path configuration is a separate document from `/native/config`. Android requests `GET /configurations/android_v1.json`. iOS requests `GET /configurations/ios_v1.json`. Bundled copies: `android/app/src/main/assets/json/path-configuration.json` and `ios/HotwireNativeShell/path-configuration.json`. A 404 on the remote URL is acceptable; the app keeps the bundled rules. iOS ignores the Android `uri` property.
-- Bottom tabs are the optional `tabs` array on `/native/config`, not a second endpoint and not a path-configuration rule. Two or more usable items show a native bar (one navigator per tab). Fewer than two keeps the single navigator. The cap is five. Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md).
-- The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). `menu` and `overflow-menu` are always registered and are not JSON keys. See [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
+- Bottom tabs come from the always-registered `tabs` bridge. Rails declares them in page markup (id, title, icon, path, and which one is active). `tabs` on `/native/config` is only the optional list shown before the first page connects. Two or more usable items show a native bar (one navigator per tab). Fewer than two keeps the single navigator. The cap is five. Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md). The controller and markup are in [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
+- The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). `menu`, `overflow-menu`, and `tabs` are always registered and are not JSON keys. See [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 - Until a real push provider is added for that client, `notification-token` replies with `{ "token": "placeholder-not-a-device-token", "provider": "placeholder" }` on Android and iOS. Rails must ignore that string. `push.enabled` and `push.topics` are recorded at startup and are not subscribed. There is no FCM dependency and no APNs entitlement.
 
 ## Success criteria

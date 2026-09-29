@@ -11,7 +11,7 @@ Use the user agent in the layout. That is available on the first byte, before an
 The shell prefixes the agent with the contract `name` (`itsjustmy;`). Hotwire then appends its own tokens. A request from this app looks like:
 
 ```
-itsjustmy; Hotwire Native iOS; Turbo Native iOS; bridge-components: [menu overflow-menu notification-token share haptic];
+itsjustmy; Hotwire Native iOS; Turbo Native iOS; bridge-components: [menu overflow-menu tabs notification-token share haptic];
 ```
 
 Android uses `Hotwire Native Android` and `Turbo Native Android`. Match `Hotwire Native`:
@@ -64,7 +64,7 @@ A title that still contains `| itsjustmy.blog` is what the native bar will displ
 
 ## Menu the site must emit
 
-Register nothing new in `/native/config`. `menu` and `overflow-menu` are always on, on both platforms, and show up in `bridge-components`. The page opts in by sending the messages below. Until the Rails app emits them, the native bar is the title and the back button only.
+Register nothing new in `/native/config`. `menu`, `overflow-menu`, and `tabs` are always on, on both platforms, and show up in `bridge-components`. The page opts in by sending the messages below. Until the Rails app emits `menu`, the native top bar is the title and the back button only.
 
 Put both controllers in the Rails app. The full scripts are in [BRIDGES.md](BRIDGES.md). The markup that connects them:
 
@@ -97,12 +97,47 @@ Hide the HTML trigger once the component is active:
 
 ## Bottom tabs
 
-Tabs come from `tabs` in `GET /native/config`, not from path configuration and not from `menu`. The shape, the five-tab cap, and the icon names are in [CONTRACT.md](CONTRACT.md).
+The live tab list is the `tabs` bridge, always registered, the same way as `menu`. Rails declares it in the page. The shell renders a Material bottom bar on Android and a tab bar on iOS. There is no `/native/config` flag. The Stimulus controller is in [BRIDGES.md](BRIDGES.md). The field rules, the five-tab cap, and the icon names are in [CONTRACT.md](CONTRACT.md).
 
-With two or more usable tabs, Android shows a Material bottom bar (`HotwireBottomNavigationController`) and iOS shows a tab bar (`HotwireTabBarController`). Each tab has its own navigator, so a push on Inicio does not change the stack on Acerca. Reselecting the active Android tab clears that tab back to its start path. Zero or one usable tab leaves the single navigator and draws no bar.
+`tabs` in `GET /native/config` is the optional list shown before the first page connects. itsjustmy bundles Inicio, Acerca, and Entrar for that cold start. Once a page sends `connect`, that message replaces the list. A message without a `tabs` array leaves the current bar alone.
 
-The device language picks `titles.es` or `titles.en`. That is separate from the site's `/locale` cookie, which still switches the HTML. Tab labels update on the next cold start after a new config, not when the user taps ES / EN in the page.
+```html
+<nav data-controller="bridge--tabs">
+  <a href="/"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="home"
+     data-bridge-title="Inicio"
+     data-bridge-icon="home"
+     data-bridge-active="true">Inicio</a>
+  <a href="/acerca"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="about"
+     data-bridge-title="Acerca"
+     data-bridge-icon="info"
+     data-bridge-sf-symbol="info.circle">Acerca</a>
+  <a href="/users/sign_in"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="sign_in"
+     data-bridge-title="Entrar"
+     data-bridge-icon="profile"
+     data-bridge-android-icon="ic_tab_profile">Entrar</a>
+</nav>
+```
+
+`data-bridge-active="true"` selects that tab. Mark the section that owns the page, including when the nav lives in the layout. `data-bridge-title` is the native label. `data-bridge-id`, `data-bridge-icon`, and `data-bridge-path` match the contract fields. A link's `href` supplies the path when `data-bridge-path` is absent. `data-bridge-url` is the absolute URL for a cross-origin tab. `data-bridge-disabled="true"` omits that link.
+
+Hide the HTML nav once the component is active. In a browser the same links stay on the page.
+
+```css
+[data-bridge-components~="tabs"] [data-controller~="bridge--tabs"] {
+  display: none;
+}
+```
+
+With two or more usable tabs, each tab has its own navigator, so a push on Inicio does not change the stack on Acerca. Sending the same list again only updates the selection. Android skips a reselection of the tab that is already selected, so that tab's back stack stays. A different list rebuilds the navigators. Zero or one usable tab leaves the single navigator and draws no bar. An empty array, or an array whose entries are all unusable, does that on purpose. A bad entry is skipped. The shell keeps at most five.
+
+The labels in the markup are whatever the page already rendered. The device language still picks `titles.es` or `titles.en` on the cold-start document, and on a bridge payload that includes `titles`. That choice is separate from the site's `/locale` cookie.
 
 Path configuration still applies inside every tab. `/new` and `/edit` stay modals. A modal does not switch tabs. On Android the bottom bar hides while a modal is up and while the keyboard is up. The visit's `context` is not how you add or remove a tab.
 
-`menu` and `overflow-menu` stay on the top bar of whichever tab is visible. The ellipsis opens that page's action sheet. It is not a tab switcher. A page under any tab can send the same `menu` markup. The tab bar does not add bridge components, and the user agent does not gain a tab token.
+`menu` and `overflow-menu` stay on the top bar of whichever tab is visible. The ellipsis opens that page's action sheet. A page under any tab can send the same `menu` markup.

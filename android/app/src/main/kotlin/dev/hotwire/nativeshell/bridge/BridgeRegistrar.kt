@@ -11,8 +11,8 @@ import dev.hotwire.nativeshell.config.BridgeFlags
 /**
  * Registers bridge components.
  *
- * `menu` and `overflow-menu` are always registered. They are the native
- * navigation chrome, not `/native/config` flags. The other names match
+ * `menu`, `overflow-menu`, and `tabs` are always registered. They are the
+ * native navigation chrome, not `/native/config` flags. The other names match
  * `@hotwired/hotwire-native-bridge` `static component` values and are
  * registered only when that flag is on. Flags this skeleton does not ship
  * stay off, so they never appear in the WebView user agent.
@@ -25,6 +25,7 @@ object BridgeRegistrar {
 
         factories += BridgeComponentFactory("menu", ::MenuComponent)
         factories += BridgeComponentFactory("overflow-menu", ::OverflowMenuComponent)
+        factories += BridgeComponentFactory("tabs", ::TabsComponent)
 
         if (flags.notificationToken) {
             factories += BridgeComponentFactory("notification-token", ::NotificationTokenComponent)

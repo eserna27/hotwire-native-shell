@@ -28,22 +28,7 @@ struct NativeConfig: Decodable, Sendable {
     /// and no tab bar; a single kept tab still supplies that navigator's start
     /// location. At most `maxTabs` are kept, in document order.
     func resolveTabs(languageTag: String) -> TabResolution {
-        var seen = Set<String>()
-        var valid: [ResolvedTab] = []
-        var dropped = 0
-        for tab in tabs {
-            guard let resolved = tab.resolve(baseUrl: baseUrl, languageTag: languageTag),
-                  seen.insert(resolved.id).inserted else {
-                dropped += 1
-                continue
-            }
-            valid.append(resolved)
-        }
-        let overflow = max(0, valid.count - Self.maxTabs)
-        if valid.count > Self.maxTabs {
-            valid = Array(valid.prefix(Self.maxTabs))
-        }
-        return TabResolution(tabs: valid, dropped: dropped, overflow: overflow)
+        presentTabs(baseUrl: baseUrl, items: tabs.map { ($0, false) }, languageTag: languageTag).resolution
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -137,12 +122,107 @@ struct TabResolution: Sendable {
     var overflow: Int
 }
 
-struct ResolvedTab: Sendable {
+struct PresentedTabs: Sendable {
+    var resolution: TabResolution
+    var selectedIndex: Int
+}
+
+struct ResolvedTab: Sendable, Equatable {
     let id: String
     let title: String
     let location: URL
     let icon: String
     let sfSymbol: String
+}
+
+func presentTabs(baseUrl: String, items: [(NativeTab, Bool)], languageTag: String) -> PresentedTabs {
+    var seen = Set<String>()
+    var valid: [(ResolvedTab, Bool)] = []
+    var dropped = 0
+    for (tab, active) in items {
+        guard let resolved = tab.resolve(baseUrl: baseUrl, languageTag: languageTag),
+              seen.insert(resolved.id).inserted else {
+            dropped += 1
+            continue
+        }
+        valid.append((resolved, active))
+    }
+    let overflow = max(0, valid.count - NativeConfig.maxTabs)
+    let kept = Array(valid.prefix(NativeConfig.maxTabs))
+    let selected = kept.firstIndex(where: { $0.1 }) ?? 0
+    return PresentedTabs(
+        resolution: TabResolution(
+            tabs: kept.map { $0.0 },
+            dropped: dropped,
+            overflow: overflow
+        ),
+        selectedIndex: selected
+    )
+}
+
+/// Parses a `tabs` bridge `connect` payload. Nil when `tabs` is missing or
+/// the body is not an object, so a bad message leaves the current bar alone.
+func parsePresentedTabs(jsonData: String, baseUrl: String, languageTag: String) -> PresentedTabs? {
+    guard let data = jsonData.data(using: .utf8),
+          let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+          let rawTabs = root["tabs"] else {
+        return nil
+    }
+    guard let array = rawTabs as? [Any] else { return nil }
+    let items: [(NativeTab, Bool)] = array.map { entry in
+        guard let object = entry as? [String: Any] else {
+            return (NativeTab(), false)
+        }
+        var tab = NativeTab()
+        tab.id = jsonString(object["id"])
+        if let title = object["title"] as? String {
+            tab.title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        var locales = jsonStringMap(object["title"])
+        locales.merge(jsonStringMap(object["titles"])) { _, new in new }
+        tab.titles = locales
+        tab.path = jsonString(object["path"])
+        tab.url = jsonString(object["url"])
+        let icon = jsonString(object["icon"]).lowercased()
+        tab.icon = icon.isEmpty ? "home" : icon
+        tab.sfSymbol = jsonString(object["sf_symbol"])
+        tab.androidIcon = jsonString(object["android_icon"])
+        return (tab, jsonActive(object["active"]))
+    }
+    return presentTabs(baseUrl: baseUrl, items: items, languageTag: languageTag)
+}
+
+private func jsonString(_ value: Any?) -> String {
+    guard let string = value as? String else { return "" }
+    return string.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+private func jsonStringMap(_ value: Any?) -> [String: String] {
+    guard let object = value as? [String: Any] else { return [:] }
+    var map: [String: String] = [:]
+    for (key, raw) in object {
+        guard let string = raw as? String else { continue }
+        let name = key
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .replacingOccurrences(of: "_", with: "-")
+        let label = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !name.isEmpty && !label.isEmpty {
+            map[name] = label
+        }
+    }
+    return map
+}
+
+private func jsonActive(_ value: Any?) -> Bool {
+    if let string = value as? String {
+        return string.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "true"
+    }
+    guard let flag = value as? Bool else { return false }
+    if let number = flag as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() {
+        return false
+    }
+    return flag
 }
 
 struct NativeTab: Decodable, Sendable {
