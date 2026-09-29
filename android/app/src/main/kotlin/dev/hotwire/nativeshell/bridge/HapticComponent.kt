@@ -37,7 +37,7 @@ class HapticComponent(
                 "warning", "error" -> HapticFeedbackConstants.REJECT
                 else -> HapticFeedbackConstants.CONFIRM
             }
-            view.performHapticFeedback(constant, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+            view.performHapticFeedback(constant)
         } else {
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
