@@ -50,3 +50,5 @@ Firebase Cloud Messaging is not a dependency. See [docs/BRIDGES.md](../docs/BRID
 ## Local Rails sketch
 
 Debug builds allow cleartext to `localhost`, `127.0.0.1`, and `10.0.2.2`. Point `base_url` at `http://10.0.2.2:9292` to hit `rails-example` from the emulator. Put the production origin back before you ship. Release builds keep `usesCleartextTraffic` off.
+
+The iOS shell is in [ios/README.md](../ios/README.md). It reads the same flavor JSON. The simulator uses `http://localhost:9292`, not `10.0.2.2`.

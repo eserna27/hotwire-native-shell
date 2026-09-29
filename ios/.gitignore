@@ -1,0 +1,8 @@
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.cer
+*.certSigningRequest

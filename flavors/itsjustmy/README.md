@@ -4,12 +4,12 @@ Pilot flavor for [itsjustmy.blog](https://itsjustmy.blog).
 
 | | |
 | --- | --- |
-| `applicationId` | `blog.itsjustmy.app` |
+| Android `applicationId` and iOS bundle id | `blog.itsjustmy.app` |
 | Display name | itsjustmy |
 | Contract | [`assets/native/config.json`](assets/native/config.json) |
 | Bridges on | `notification-token`, `share`, `haptic` |
 | Tabs | none (single Hotwire navigator at `/`) |
 
-The Android `itsjustmy` source set packages `assets/` into the APK, so this JSON is the offline copy of `GET /native/config`. The launcher icon under `android/app/src/itsjustmy` is a placeholder monogram.
+The Android `itsjustmy` source set packages `assets/` into the APK. The iOS target references `assets/native` as a folder, so the same JSON is the offline copy of `GET /native/config` on both platforms. The launcher icons are placeholder monograms.
 
-`push.topics` lists `posts`. The shell records that and does not subscribe to Firebase yet.
+`push.topics` lists `posts`. Both shells record that. Neither subscribes to Firebase or APNs yet.

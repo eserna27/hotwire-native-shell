@@ -1,6 +1,6 @@
 # Bridge catalog
 
-Bridge components are the Hotwire Native channel between a Stimulus controller and Kotlin. The web package is [`@hotwired/hotwire-native-bridge`](https://github.com/hotwired/hotwire-native-bridge). The native side registers a `BridgeComponentFactory` whose name equals the controller's `static component`.
+Bridge components are the Hotwire Native channel between a Stimulus controller and the native shell (Kotlin on Android, Swift on iOS). The web package is [`@hotwired/hotwire-native-bridge`](https://github.com/hotwired/hotwire-native-bridge). Android registers a `BridgeComponentFactory` whose name equals the controller's `static component`. iOS subclasses `BridgeComponent` and overrides `name` with that same string.
 
 The shell only registers factories for flags that are `true` in [`/native/config`](CONTRACT.md). itsjustmy turns on three. The others are named here so a later client can enable them without inventing new JSON keys.
 
@@ -59,11 +59,13 @@ When you add FCM in a client app:
 
 Until step 4, Rails must ignore `placeholder-not-a-device-token`.
 
+iOS replies with the same JSON. There is no APNs entitlement, no push capability, and no device token in this skeleton. Do not treat `placeholder-not-a-device-token` as an APNs token either.
+
 ## share
 
 JSON key `share`. Component name `share`.
 
-`connect` carries `{ "url": "https://..." }`. The shell adds a toolbar action that opens `Intent.ACTION_SEND`. If `url` is missing, it uses the page URL on the bridge message. `disconnect` removes the action.
+`connect` carries `{ "url": "https://..." }`. Android adds a toolbar action that opens `Intent.ACTION_SEND`. iOS adds a navigation-bar button that opens `UIActivityViewController`. If `url` is missing, both use the page URL on the bridge message. `disconnect` removes the action.
 
 ```javascript
 import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
@@ -86,7 +88,7 @@ export default class extends BridgeComponent {
 
 JSON key `haptic`. Component name `haptic`.
 
-`vibrate` carries `{ "feedback": "success" | "warning" | "error" }`. Empty means `success`. On Android 11 and later, `success` uses `CONFIRM` and the other two use `REJECT`.
+`vibrate` carries `{ "feedback": "success" | "warning" | "error" }`. Empty means `success`. On Android 11 and later, `success` uses `CONFIRM` and the other two use `REJECT`. On iOS, `success`, `warning`, and `error` map to `UINotificationFeedbackGenerator` (`.success`, `.warning`, `.error`).
 
 ```javascript
 import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
@@ -118,4 +120,4 @@ These flags exist so flavors can say "not in this app" without a shell change. S
 | `clipboard` | `clipboard` | Read or write the clipboard. Not implemented. |
 | `file_download` | `file-download` | Hand a URL to the system download manager. Not implemented. |
 
-Add the Kotlin class, register it from `BridgeRegistrar` when the flag is on, and document the Stimulus events in this file before flipping a flavor to `true`.
+Add the Kotlin class and the Swift class, register each from that platform's `BridgeRegistrar` when the flag is on, and document the Stimulus events in this file before flipping a flavor to `true`.

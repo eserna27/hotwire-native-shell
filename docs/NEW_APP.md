@@ -58,4 +58,12 @@ The flavor JSON is inside the APK. Airplane mode on first launch should still op
 
 ## iOS
 
-Do not create an Xcode project yet. When you do, read the same `/native/config` and the same bridge names. Path rules can stay on `/configurations/ios_v1.json`. See [ios/README.md](../ios/README.md).
+v1 is one Xcode target, `HotwireNativeShell`, not a flavor matrix. The pilot bundle id is `blog.itsjustmy.app`, the same string as the Android `applicationId`. The target bundles [`flavors/itsjustmy/assets/native`](../flavors/itsjustmy/assets/native) so `native/config.json` in the app is that flavor file.
+
+To point the same target at another client:
+
+1. In `ios/HotwireNativeShell.xcodeproj/project.pbxproj`, change `PRODUCT_BUNDLE_IDENTIFIER` and `INFOPLIST_KEY_CFBundleDisplayName`.
+2. Point the `native` folder reference at `flavors/<name>/assets/native`.
+3. That client's Rails app must serve `GET /native/config` and `GET /configurations/ios_v1.json`.
+
+Do not add a second JSON contract or a push entitlement. Open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. See [ios/README.md](../ios/README.md).

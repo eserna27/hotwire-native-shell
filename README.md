@@ -1,26 +1,27 @@
 # Hotwire Native Shell
 
-A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rails apps. The app is a thin Android (and, later, iOS) container. Rails decides the origin, the start path, and which bridge components are on, through `GET /native/config`.
+A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rails apps. The app is a thin Android and iOS container. Rails decides the origin, the start path, and which bridge components are on, through `GET /native/config`.
 
-**itsjustmy.blog** is the pilot, Android first. Nagama and Jazz Controls can become flavors of this same project. The library is MIT and free to use. It is not a product we sell.
+**itsjustmy.blog** is the pilot. Nagama and Jazz Controls can become flavors of this same project. The library is MIT and free to use. It is not a product we sell.
 
-> Biblioteca libre (MIT) para envolver apps Rails con Hotwire Native. El piloto es itsjustmy.blog en Android; iOS usará el mismo contrato JSON. No es un producto comercial.
+> Biblioteca libre (MIT) para envolver apps Rails con Hotwire Native. El piloto es itsjustmy.blog, en Android y en iOS, con el mismo contrato JSON. No es un producto comercial.
 
 **Agents:** [AGENTS.md](AGENTS.md) is the playbook for building or extending a client app from this shell.
 
 ## What this is
 
 - One Kotlin app on [Hotwire Native Android 1.3.1](https://github.com/hotwired/hotwire-native-android/releases/tag/1.3.1) (`dev.hotwire:core`, `dev.hotwire:navigation-fragments`).
+- One Swift app on [Hotwire Native iOS 1.3.1](https://github.com/hotwired/hotwire-native-ios/releases/tag/1.3.1) (`HotwireNative` via Swift Package Manager).
 - A stable JSON contract, plus Hotwire's own path-configuration file.
-- A flavor per client. itsjustmy uses `applicationId` `blog.itsjustmy.app`.
+- A flavor per client on Android. iOS v1 is one target that bundles the itsjustmy flavor. Both use bundle id `blog.itsjustmy.app`.
 - Stub bridges for notification token, share, and haptic. Camera, biometric, clipboard, and file download stay off.
 
 ## What this is not
 
 - Not a hosted service, an app store listing, or a paid SDK.
 - Not the itsjustmy.blog Rails application. That site stays in its own repo and only needs to serve the contract.
-- Not an iOS app yet. [ios/README.md](ios/README.md) is a placeholder. The contract is what iOS will share.
-- Not Firebase. Push is a flag and a topic list. The notification bridge returns a placeholder token until a client app adds FCM. No `google-services.json` and no keystores are in git.
+- Not an App Store listing. The iOS project has no signing identity, provisioning profile, or push entitlement in git. See [ios/README.md](ios/README.md).
+- Not Firebase and not APNs. Push is a flag and a topic list. The notification bridge returns a placeholder token until a client app adds a real provider. No `google-services.json` and no keystores are in git.
 
 ## Layout
 
@@ -29,9 +30,9 @@ docs/CONTRACT.md          Rails ↔ native JSON
 docs/NEW_APP.md           another client (Nagama, …)
 docs/BRIDGES.md           bridge catalog
 android/                  Hotwire Native Android app
-flavors/itsjustmy/        sample flavor (bundle id lives in Gradle; JSON lives here)
+ios/                      Hotwire Native iOS app
+flavors/itsjustmy/        sample flavor (bundle id in Gradle and in the Xcode target; JSON lives here)
 rails-example/            sketch that serves GET /native/config
-ios/README.md             coming next
 ```
 
 ## Contract
@@ -60,9 +61,9 @@ ios/README.md             coming next
 }
 ```
 
-Field rules, tabs, and the separate path-configuration URL are in [docs/CONTRACT.md](docs/CONTRACT.md). The file above is [`flavors/itsjustmy/assets/native/config.json`](flavors/itsjustmy/assets/native/config.json). Android packages it for offline launch and refreshes it from the server when it can.
+Field rules, tabs, and the separate path-configuration URL are in [docs/CONTRACT.md](docs/CONTRACT.md). The file above is [`flavors/itsjustmy/assets/native/config.json`](flavors/itsjustmy/assets/native/config.json). Android and iOS both package it for offline launch and refresh it from the server when they can.
 
-Hotwire navigation rules (modal `/new` and `/edit`, pull to refresh) are `GET /configurations/android_v1.json`, not part of `/native/config`.
+Hotwire navigation rules (modal `/new` and `/edit`, pull to refresh) are `GET /configurations/android_v1.json` on Android and `GET /configurations/ios_v1.json` on iOS. They are not part of `/native/config`.
 
 ## Android
 
@@ -75,13 +76,30 @@ cd android
 
 JDK 17 or newer. Details, signing, and the emulator cleartext exception are in [android/README.md](android/README.md).
 
+## iOS
+
+Open `ios/HotwireNativeShell.xcodeproj` in Xcode 15 or newer and run the `HotwireNativeShell` scheme. On a Mac:
+
+```sh
+cd ios
+xcodebuild \
+  -project HotwireNativeShell.xcodeproj \
+  -scheme HotwireNativeShell \
+  -destination 'generic/platform=iOS Simulator' \
+  -configuration Debug \
+  CODE_SIGNING_ALLOWED=NO \
+  build
+```
+
+That command needs Xcode. It does not run on Linux. Details, the simulator cleartext exception, and the missing signing secrets are in [ios/README.md](ios/README.md).
+
 ## Rails
 
-The sketch in [rails-example/](rails-example/README.md) serves the flavor JSON. Copy the controller and the two routes into the real app when you are ready. Until `https://itsjustmy.blog/native/config` exists, the installed app uses the JSON in the APK.
+The sketch in [rails-example/](rails-example/README.md) serves the flavor JSON and both path-configuration URLs. Copy the controller and the routes into the real app when you are ready. Until `https://itsjustmy.blog/native/config` exists, the installed app uses the JSON bundled with it.
 
 ## Another client
 
-Copy `flavors/itsjustmy`, add a Gradle flavor, point that app's Rails at the same routes. Steps are in [docs/NEW_APP.md](docs/NEW_APP.md).
+Copy `flavors/itsjustmy`, add a Gradle flavor, and point that app's Rails at the same routes. iOS v1 is the one Xcode target; swap its bundle id and the bundled flavor folder. Steps are in [docs/NEW_APP.md](docs/NEW_APP.md).
 
 ## License
 

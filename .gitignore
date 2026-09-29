@@ -2,12 +2,21 @@
 *.jks
 *.keystore
 google-services.json
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
 
 android/.gradle/
 android/local.properties
 android/.idea/
 android/keystore.properties
 android/**/build/
+
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+DerivedData/
 
 rails-example/.bundle/
 rails-example/vendor/
