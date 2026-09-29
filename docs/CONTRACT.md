@@ -26,7 +26,31 @@ itsjustmy, the pilot:
   "name": "itsjustmy",
   "base_url": "https://itsjustmy.blog",
   "start_path": "/",
-  "tabs": [],
+  "tabs": [
+    {
+      "id": "home",
+      "title": "Inicio",
+      "titles": { "es": "Inicio", "en": "Home" },
+      "path": "/",
+      "icon": "home"
+    },
+    {
+      "id": "about",
+      "title": "Acerca",
+      "titles": { "es": "Acerca", "en": "About" },
+      "path": "/acerca",
+      "icon": "info",
+      "sf_symbol": "info.circle"
+    },
+    {
+      "id": "sign_in",
+      "title": "Entrar",
+      "titles": { "es": "Entrar", "en": "Sign in" },
+      "path": "/users/sign_in",
+      "icon": "profile",
+      "android_icon": "ic_tab_profile"
+    }
+  ],
   "bridges": {
     "notification_token": true,
     "share": true,
@@ -51,8 +75,8 @@ The canonical copy is [`flavors/itsjustmy/assets/native/config.json`](../flavors
 | --- | --- | --- |
 | `name` | yes | Short client id. Sent as the Hotwire user-agent prefix (`itsjustmy;`). |
 | `base_url` | yes | HTTPS origin of the Rails app, no trailing path. |
-| `start_path` | no | Path opened when `tabs` is empty. Default `/`. |
-| `tabs` | no | Bottom tabs. Empty array means one navigator and no tab bar. |
+| `start_path` | no | Path opened when no usable tab supplies a start location. Default `/`. |
+| `tabs` | no | Cold-start bottom tabs, in order, shown until a page connects the `tabs` bridge. Missing, `[]`, or fewer than two usable entries means one navigator and no tab bar. |
 | `bridges` | no | Which native bridge components the shell may register. Missing flags are off. |
 | `push.enabled` | no | Whether the client wants push. Default `false`. |
 | `push.topics` | no | Topic names reserved for a later FCM subscription. Strings only. |
@@ -63,25 +87,86 @@ The shell ignores unknown keys. Add fields when you need them. Do not rename or 
 
 ### Tabs
 
-Each item:
+`tabs` on this document is the cold-start list. The shell shows it before any page has connected the `tabs` bridge. It is not a bridge flag. The page replaces the list by sending `connect` from the Stimulus controller in [BRIDGES.md](BRIDGES.md). The markup is in [NATIVE_UI.md](NATIVE_UI.md). Changing either the document or the markup needs no store build.
+
+Each usable entry becomes its own navigator stack: `HotwireBottomNavigationController` on Android and `HotwireTabBarController` on iOS. The same resolved list, sent again from a later page, only changes which tab is selected. A different list rebuilds those navigators.
+
+Two usable tabs are the minimum that shows a bar. Zero or one keeps the single navigator. A lone usable tab supplies that navigator's start location. With zero, the shell opens `start_path`.
+
+The shell keeps at most five tabs, which is Material's bottom-bar limit and the usual iOS tab bar before a More item. Further usable entries are ignored. An entry that fails the rules below is skipped. A bad entry does not reject the rest of `/native/config`, and it does not crash the app. A `tabs` value that is not an array is treated as no tabs on this document. On the bridge, a missing `tabs` key or a non-array leaves the current bar alone, and a present array is applied even when every entry is skipped.
 
 | Field | Required | Meaning |
 | --- | --- | --- |
-| `id` | yes | Stable navigator name. Unique within the document. |
-| `title` | yes | Tab label. |
-| `path` | yes | Path on `base_url`. |
-| `icon` | no | `home` (default), `posts`, `search`, or `profile`. |
+| `id` | yes | Stable id, unique in the list. 1–64 characters: ASCII letters, digits, `.`, `_`, `-`, starting with a letter or digit. The first duplicate is kept. Android uses it as the navigator name. Hotwire Native iOS 1.3.1 uses the visible title as the navigator name and this `id` to find that tab's navigator. |
+| `title` | one of `title` / `titles` | Label. A string, or a locale object such as `{ "es": "Inicio", "en": "Home" }`. |
+| `titles` | one of `title` / `titles` | Locale object. Keys are language codes (`es`, `en`, or `es-MX`). For a matching language this wins over a string `title`. |
+| `path` | one of `path` / `url` | Path joined to `base_url`. Must not contain a scheme or whitespace. |
+| `url` | one of `path` / `url` | Absolute `http` or `https` URL. When it is valid it replaces `path`, including on another origin. |
+| `icon` | no | Shared catalog name. Default `home`. Unknown names use `home`. |
+| `sf_symbol` | no | iOS-only SF Symbol, such as `info.circle`. Used when the system can draw it. Unknown names fall back to `icon`. |
+| `android_icon` | no | Android drawable resource name already in the APK, such as `ic_tab_profile`. Unknown names fall back to `icon`. |
+| `active` | no | Bridge payload only. `true` or the string `"true"` selects that tab. The first kept tab with this set wins. Config entries omit it, so cold start selects the first tab. |
 
-Android shows at most four tabs. Further items are ignored. itsjustmy ships with `"tabs": []`.
+`title` stays a string in the bundled file so a shell that only decodes a string can still read the tab. A locale object in `title` is accepted by this shell. An older shell that requires a string will refuse the whole remote document and keep its previous copy. Prefer a string `title` plus `titles` when both shells are in the field. `titles`, `url`, `sf_symbol`, and `android_icon` are extra keys. A shell that does not know them ignores them.
 
-Example for a later client:
+The label is chosen from the device language, not from the Rails locale cookie:
+
+1. `titles` (or a locale object in `title`) for the full tag, then the language (`es-MX` then `es`).
+2. The string `title`.
+3. `en`, then `es`, then any other locale string.
+4. No label: the tab is skipped.
+
+Labels are collapsed to one line and cut at 40 characters.
+
+#### Icons
+
+One shared `icon` name is the portable choice. Rails does not have to name a different asset per platform. The shell maps that name:
+
+| `icon` | Android drawable | iOS SF Symbol |
+| --- | --- | --- |
+| `home` | `ic_tab_home` | `house` |
+| `posts` | `ic_tab_posts` | `doc.text` |
+| `search` | `ic_tab_search` | `magnifyingglass` |
+| `profile` | `ic_tab_profile` | `person` |
+| `info` | `ic_tab_info` | `info.circle` |
+
+Anything else, including a missing `icon`, uses `home` / `house`.
+
+`sf_symbol` overrides iOS only. SF Symbols ship with the OS, so a new symbol does not need a shell build. `android_icon` overrides Android only. It has to be a drawable already compiled into the APK (`ic_tab_home`, `ic_tab_posts`, `ic_tab_search`, `ic_tab_profile`, `ic_tab_info`, or another drawable that flavor already ships). A new Android picture still needs a shell release. The shell never downloads an icon.
+
+itsjustmy bundles three tabs for real public routes (`/`, `/acerca`, `/users/sign_in` all returned HTTP 200). `/about` also returns 200; the bundled path is `/acerca` because the site's default locale is Spanish. `/posts` and `/explore` are not routes on the site. `/dashboard` exists and redirects to sign-in when logged out, so it is not a bundled tab.
 
 ```json
 "tabs": [
-  { "id": "home", "title": "Home", "path": "/", "icon": "home" },
-  { "id": "posts", "title": "Posts", "path": "/posts", "icon": "posts" }
+  {
+    "id": "home",
+    "title": "Inicio",
+    "titles": { "es": "Inicio", "en": "Home" },
+    "path": "/",
+    "icon": "home"
+  },
+  {
+    "id": "about",
+    "title": "Acerca",
+    "titles": { "es": "Acerca", "en": "About" },
+    "path": "/acerca",
+    "icon": "info",
+    "sf_symbol": "info.circle"
+  },
+  {
+    "id": "sign_in",
+    "title": "Entrar",
+    "titles": { "es": "Entrar", "en": "Sign in" },
+    "path": "/users/sign_in",
+    "icon": "profile",
+    "android_icon": "ic_tab_profile"
+  }
 ]
 ```
+
+Path configuration is a separate document. It still decides `context` and pull-to-refresh for every visit, including a tab's start path and later pushes inside that tab. A `modal` rule presents that visit from the tab's navigator. It does not switch tabs. Android's controller hides the bottom bar on modal screens and while the keyboard is up. Tabs are not declared in `/configurations/android_v1.json` or `ios_v1.json`.
+
+`menu` and `overflow-menu` stay registered either way. They add the current page's ellipsis and action sheet to that tab's top bar. The `tabs` component is registered with them and is the live source of the bar after the first `connect`. See [NATIVE_UI.md](NATIVE_UI.md).
 
 ### Bridges
 
@@ -99,7 +184,7 @@ Boolean flags. The native component name (the Stimulus `static component` value)
 
 A flag that is `false` or absent is not registered, so it does not show up in the `bridge-components:` user-agent list. The web bridge then leaves the HTML in place. See [BRIDGES.md](BRIDGES.md).
 
-`menu` and `overflow-menu` are not flags. Both shells always register them so the native navigation bar can host the site's menu. The markup and the title rules are in [NATIVE_UI.md](NATIVE_UI.md).
+`menu`, `overflow-menu`, and `tabs` are not flags. Both shells always register them. `menu` and `overflow-menu` host the site's menu on the top bar. `tabs` hosts the bottom bar. The markup is in [NATIVE_UI.md](NATIVE_UI.md).
 
 If a reserved flag is `true` and the shell has no component yet, Android and iOS log a warning and still do not register it. The iOS stubs for the three itsjustmy bridges match the Android ones, including the placeholder notification token.
 

@@ -2,7 +2,7 @@
 
 Bridge components are the Hotwire Native channel between a Stimulus controller and the native shell (Kotlin on Android, Swift on iOS). The web package is [`@hotwired/hotwire-native-bridge`](https://github.com/hotwired/hotwire-native-bridge). Android registers a `BridgeComponentFactory` whose name equals the controller's `static component`. iOS subclasses `BridgeComponent` and overrides `name` with that same string.
 
-`menu` and `overflow-menu` are always registered. They drive the native navigation chrome and are not keys in [`/native/config`](CONTRACT.md). See [NATIVE_UI.md](NATIVE_UI.md). Every other factory is registered only when its flag is `true`. itsjustmy turns on three of those. The rest are named here so a later client can enable them without inventing new JSON keys.
+`menu`, `overflow-menu`, and `tabs` are always registered. They drive the native navigation chrome and are not keys in [`/native/config`](CONTRACT.md). See [NATIVE_UI.md](NATIVE_UI.md). Every other factory is registered only when its flag is `true`. itsjustmy turns on three of those. The rest are named here so a later client can enable them without inventing new JSON keys.
 
 Hide a web control when the native component is active:
 
@@ -200,6 +200,111 @@ export default class extends BridgeComponent {
 ```
 
 The native navigation bar title is `document.title`. How the Rails layout detects the shell, hides `nav.navbar`, and drops the `| itsjustmy.blog` suffix is in [NATIVE_UI.md](NATIVE_UI.md).
+
+## tabs
+
+Component name `tabs`. There is no JSON key. Both platforms always register it, the same way as `menu`.
+
+`connect` carries the tab list. The shell draws a Material bottom bar on Android (`HotwireBottomNavigationController`) and a tab bar on iOS (`HotwireTabBarController`). Each usable tab gets its own navigator stack. There is no reply.
+
+```json
+{
+  "tabs": [
+    {
+      "id": "home",
+      "title": "Inicio",
+      "icon": "home",
+      "path": "/",
+      "active": true
+    },
+    {
+      "id": "about",
+      "title": "Acerca",
+      "icon": "info",
+      "sf_symbol": "info.circle",
+      "path": "/acerca",
+      "active": false
+    }
+  ]
+}
+```
+
+`id`, `title`, `icon`, `path`, `url`, `sf_symbol`, `android_icon`, and `titles` follow the same rules as the cold-start list in [CONTRACT.md](CONTRACT.md). The page is already localized, so this controller sends one `title`. `active` is `true` for the tab that owns the current section. The first kept tab with `active` is selected. A later `true` past the five-tab cap is dropped with that tab.
+
+A message with no `tabs` key, or a `tabs` value that is not an array, leaves the current bar alone. A present array is applied. Zero or one usable entry removes the bar and leaves the single navigator. `disconnect` does not remove the bar.
+
+Until the first `connect`, the shell shows `tabs` from `/native/config` when that document has two or more usable entries. That array is only the cold-start fallback.
+
+The same resolved list only changes the selected tab. Android does not reselect the tab that is already selected, because reselection clears that tab's back stack. A different list rebuilds the navigators: Android recreates the activity, and iOS calls `load` again or swaps the root between one navigator and the tab bar.
+
+```javascript
+import { BridgeComponent, BridgeElement } from "@hotwired/hotwire-native-bridge"
+
+export default class extends BridgeComponent {
+  static component = "tabs"
+  static targets = ["tab"]
+
+  connect() {
+    super.connect()
+    const tabs = this.tabTargets.flatMap((element) => {
+      const bridgeElement = new BridgeElement(element)
+      if (bridgeElement.disabled) return []
+      let path = bridgeElement.bridgeAttribute("path") || ""
+      if (!path && element.getAttribute("href")) {
+        try {
+          path = new URL(element.href, window.location.href).pathname
+        } catch (e) {
+          path = ""
+        }
+      }
+      return [{
+        id: bridgeElement.bridgeAttribute("id"),
+        title: bridgeElement.title,
+        icon: bridgeElement.bridgeAttribute("icon") || "home",
+        sf_symbol: bridgeElement.bridgeAttribute("sf-symbol") || "",
+        android_icon: bridgeElement.bridgeAttribute("android-icon") || "",
+        path,
+        url: bridgeElement.bridgeAttribute("url") || "",
+        active: bridgeElement.bridgeAttribute("active") === "true"
+      }]
+    })
+    this.send("connect", { tabs })
+  }
+}
+```
+
+```html
+<nav data-controller="bridge--tabs">
+  <a href="/"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="home"
+     data-bridge-title="Inicio"
+     data-bridge-icon="home"
+     data-bridge-active="true">Inicio</a>
+  <a href="/acerca"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="about"
+     data-bridge-title="Acerca"
+     data-bridge-icon="info"
+     data-bridge-sf-symbol="info.circle">Acerca</a>
+  <a href="/users/sign_in"
+     data-bridge--tabs-target="tab"
+     data-bridge-id="sign_in"
+     data-bridge-title="Entrar"
+     data-bridge-icon="profile"
+     data-bridge-android-icon="ic_tab_profile">Entrar</a>
+</nav>
+```
+
+`data-bridge-title` is the native label. Without it, the bridge uses the element's text. `data-bridge-path` wins over the link's `href`. A cross-origin tab needs `data-bridge-url`, because the `href` pathname drops the origin. `data-bridge-disabled="true"` leaves that target out of the message. Hide the HTML nav once the component is active. The links stay usable in a normal browser.
+
+```css
+[data-bridge-components~="tabs"] [data-controller~="bridge--tabs"] {
+  display: none;
+}
+```
+
+Ship this file from the Rails app (`eserna27/blogs`). This repository does not. Put the nav in the layout and mark only the current section `data-bridge-active="true"`. An inner page that repeats the same list keeps the stacks. Path configuration still applies inside each tab. `menu` and `overflow-menu` stay on that tab's top bar.
 
 ## Reserved, off
 

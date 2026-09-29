@@ -26,9 +26,9 @@ Android Studio writes `local.properties` with your SDK path. That file is gitign
 ## What it does
 
 1. `ShellApplication` reads `native/config.json` from the flavor assets (packaged from `flavors/itsjustmy/assets`).
-2. It always registers `menu` and `overflow-menu` (native toolbar chrome). It registers `notification-token`, `share`, and `haptic` because the flavor file turns them on. The toolbar title is the page's document title. How Rails hides `nav.navbar` and drops the `| itsjustmy.blog` suffix is in [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
+2. It always registers `menu`, `overflow-menu`, and `tabs` (native chrome). It registers `notification-token`, `share`, and `haptic` because the flavor file turns them on. The toolbar title is the page's document title. How Rails hides `nav.navbar`, drops the `| itsjustmy.blog` suffix, and declares tabs is in [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
 3. It loads Hotwire path configuration from `assets/json/path-configuration.json`, then tries `{base_url}/configurations/android_v1.json`.
-4. `MainActivity` opens `base_url` + `start_path` in a `NavigatorHost`. itsjustmy has no tabs, so there is no bottom bar.
+4. `MainActivity` opens one `NavigatorHost` when fewer than two usable tabs are presented. Cold start reads `tabs` from `/native/config`. itsjustmy bundles three (`/`, `/acerca`, `/users/sign_in`), so the activity uses `HotwireBottomNavigationController` and one navigator per tab until a page sends the `tabs` bridge. That message replaces the list. The bar holds at most five. A bad tab is skipped.
 5. A background request stores `GET /native/config`. The cache is used on the next cold start. If the site does not serve the route yet, the bundled JSON stays in effect.
 
 WebView debugging and Hotwire logs are on in debug builds only.

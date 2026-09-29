@@ -3,8 +3,8 @@ import os
 
 /// Registers bridge components.
 ///
-/// `menu` and `overflow-menu` are always registered. They are the native
-/// navigation chrome, not `/native/config` flags. The other names match
+/// `menu`, `overflow-menu`, and `tabs` are always registered. They are the
+/// native navigation chrome, not `/native/config` flags. The other names match
 /// `@hotwired/hotwire-native-bridge` `static component` values and are
 /// registered only when that flag is on. Flags this skeleton does not ship
 /// stay off, so they never appear in the WebView user agent.
@@ -14,7 +14,8 @@ enum BridgeRegistrar {
     static func componentTypes(for flags: BridgeFlags) -> [BridgeComponent.Type] {
         var types: [BridgeComponent.Type] = [
             MenuComponent.self,
-            OverflowMenuComponent.self
+            OverflowMenuComponent.self,
+            TabsComponent.self
         ]
         if flags.notificationToken {
             types.append(NotificationTokenComponent.self)

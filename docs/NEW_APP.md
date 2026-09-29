@@ -12,9 +12,11 @@ Edit `flavors/nagama/assets/native/config.json`:
 
 - `name`: `nagama`
 - `base_url`: the Rails origin
-- `start_path` or `tabs`
+- `start_path`, and `tabs` when that app should show a bottom bar before the first page connects the `tabs` bridge
 - `bridges`: only the components that app's Hotwire pages send
 - `push`: `enabled` and `topics`, or turn push off
+
+`tabs` in the flavor JSON is the cold-start list in [CONTRACT.md](CONTRACT.md). Each item needs an `id`, a `title` (string, plus optional `titles` for `es` / `en`), an `icon` (`home`, `posts`, `search`, `profile`, or `info`), and a `path` or absolute `url`. Add `sf_symbol` or `android_icon` only to override that shared icon. Two usable tabs show the bar before the first page loads. One, or an empty list, keeps a single navigator until then. The shell ignores a bad item and keeps at most five. The live bar is the `tabs` Stimulus controller in [BRIDGES.md](BRIDGES.md), which the shell always registers. A later JSON or markup change does not need a store build. A new Android drawable does.
 
 Leave unknown flags `false`.
 
@@ -50,7 +52,7 @@ cd android
 
 `GET /native/config` returns the same JSON. `GET /configurations/android_v1.json` returns the Hotwire path rules. Start from [rails-example/](../rails-example/README.md) and [CONTRACT.md](CONTRACT.md).
 
-Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`. `menu` and `overflow-menu` are already registered. The layout still has to hide the HTML navbar and drop the title suffix. See [NATIVE_UI.md](NATIVE_UI.md).
+Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`. `menu`, `overflow-menu`, and `tabs` are already registered. The layout still has to hide the HTML navbar, drop the title suffix, and emit the tab nav. See [NATIVE_UI.md](NATIVE_UI.md).
 
 ## 4. Check the offline path
 
