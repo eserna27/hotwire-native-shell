@@ -6,6 +6,8 @@ A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rail
 
 > Biblioteca libre (MIT) para envolver apps Rails con Hotwire Native. El piloto es itsjustmy.blog en Android; iOS usará el mismo contrato JSON. No es un producto comercial.
 
+**Agents:** [AGENTS.md](AGENTS.md) is the playbook for building or extending a client app from this shell.
+
 ## What this is
 
 - One Kotlin app on [Hotwire Native Android 1.3.1](https://github.com/hotwired/hotwire-native-android/releases/tag/1.3.1) (`dev.hotwire:core`, `dev.hotwire:navigation-fragments`).
