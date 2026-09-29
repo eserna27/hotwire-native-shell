@@ -5,6 +5,7 @@ import os
 /// Stimulus: `static component = "share"`, event `connect`, data `{url}`.
 /// Adds a navigation-bar action that opens the system share sheet. The sheet
 /// shares `url`, or the page URL from the bridge message when `url` is omitted.
+/// The item is appended beside `overflow-menu`, which stays the trailing button.
 final class ShareComponent: BridgeComponent {
     override class var name: String { "share" }
 
@@ -43,15 +44,20 @@ final class ShareComponent: BridgeComponent {
         })
         item.image = UIImage(systemName: "square.and.arrow.up")
         item.accessibilityLabel = "Share"
-        viewController.navigationItem.rightBarButtonItem = item
+        var items = viewController.navigationItem.rightBarButtonItems ?? []
+        if let shareItem {
+            items.removeAll { $0 === shareItem }
+        }
+        items.append(item)
+        viewController.navigationItem.rightBarButtonItems = items
         shareItem = item
     }
 
     private func removeButton() {
         guard let viewController else { return }
-        if viewController.navigationItem.rightBarButtonItem === shareItem {
-            viewController.navigationItem.rightBarButtonItem = nil
-        }
+        var items = viewController.navigationItem.rightBarButtonItems ?? []
+        items.removeAll { $0 === shareItem }
+        viewController.navigationItem.rightBarButtonItems = items.isEmpty ? nil : items
         shareItem = nil
     }
 

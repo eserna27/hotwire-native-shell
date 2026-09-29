@@ -2,7 +2,7 @@
 
 Bridge components are the Hotwire Native channel between a Stimulus controller and the native shell (Kotlin on Android, Swift on iOS). The web package is [`@hotwired/hotwire-native-bridge`](https://github.com/hotwired/hotwire-native-bridge). Android registers a `BridgeComponentFactory` whose name equals the controller's `static component`. iOS subclasses `BridgeComponent` and overrides `name` with that same string.
 
-The shell only registers factories for flags that are `true` in [`/native/config`](CONTRACT.md). itsjustmy turns on three. The others are named here so a later client can enable them without inventing new JSON keys.
+`menu` and `overflow-menu` are always registered. They drive the native navigation chrome and are not keys in [`/native/config`](CONTRACT.md). See [NATIVE_UI.md](NATIVE_UI.md). Every other factory is registered only when its flag is `true`. itsjustmy turns on three of those. The rest are named here so a later client can enable them without inventing new JSON keys.
 
 Hide a web control when the native component is active:
 
@@ -108,6 +108,98 @@ export default class extends BridgeComponent {
   Tap
 </button>
 ```
+
+## menu
+
+Component name `menu`. There is no JSON key. Both platforms always register it.
+
+`display` carries:
+
+```json
+{
+  "title": "Select an option",
+  "items": [{ "title": "Option One", "index": 0 }],
+  "source": { "x": 0, "y": 0, "width": 0, "height": 0 }
+}
+```
+
+`index` is the item's position in the Stimulus `item` target list. iOS presents an action sheet and uses `source` (from `getBoundingClientRect`) to anchor the popover. Android presents a bottom sheet and ignores `source`. The reply is `{ "selectedIndex": 0 }`. Cancel on iOS, and dismissing the sheet on Android, sends no reply.
+
+```javascript
+import { BridgeComponent, BridgeElement } from "@hotwired/hotwire-native-bridge"
+
+export default class extends BridgeComponent {
+  static component = "menu"
+  static targets = ["title", "item"]
+
+  show(event) {
+    if (!this.enabled) return
+    event.stopImmediatePropagation()
+    const title = new BridgeElement(this.titleTarget).title
+    const items = this.itemTargets.flatMap((element, index) => {
+      const bridgeElement = new BridgeElement(element)
+      if (bridgeElement.disabled) return []
+      return [{ title: bridgeElement.title, index }]
+    })
+    const rect = event.target.getBoundingClientRect()
+    this.send("display", {
+      title,
+      items,
+      source: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+    }, (message) => {
+      new BridgeElement(this.itemTargets[message.data.selectedIndex]).click()
+    })
+  }
+}
+```
+
+Ship this file from the Rails app (`eserna27/blogs`). This repository does not.
+
+## overflow-menu
+
+Component name `overflow-menu`. There is no JSON key. Both platforms always register it.
+
+`connect` carries `{ "label": "Options" }`. iOS adds a trailing navigation-bar button (`ellipsis.circle`). Android adds a trailing toolbar action with the same ellipsis. The reply has no data. The web controller clicks the element, which should also run `bridge--menu#show`.
+
+The overflow button is the trailing item. `share`, when that flag is on, sits beside it.
+
+```javascript
+import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
+
+export default class extends BridgeComponent {
+  static component = "overflow-menu"
+
+  connect() {
+    super.connect()
+    this.send("connect", { label: this.bridgeElement.title }, () => {
+      this.bridgeElement.click()
+    })
+  }
+}
+```
+
+```html
+<div data-controller="menu bridge--menu">
+  <button type="button"
+          data-controller="bridge--overflow-menu"
+          data-action="click->bridge--menu#show click->menu#show"
+          data-bridge-title="Options">
+    Open Menu
+  </button>
+  <p hidden data-bridge--menu-target="title">Select an option</p>
+  <a data-bridge--menu-target="item" href="/edit">Edit</a>
+</div>
+```
+
+`data-bridge-title` is the native label. Without it, the bridge uses the element's text. Hide the HTML control once the component is active:
+
+```css
+[data-bridge-components~="overflow-menu"] [data-controller~="bridge--overflow-menu"] {
+  display: none;
+}
+```
+
+The native navigation bar title is `document.title`. How the Rails layout detects the shell, hides `nav.navbar`, and drops the `| itsjustmy.blog` suffix is in [NATIVE_UI.md](NATIVE_UI.md).
 
 ## Reserved, off
 

@@ -66,7 +66,7 @@ def main() -> None:
         fail("Hotwire Native Android 1.3.1")
 
     registrar = (ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "BridgeRegistrar.kt").read_text()
-    for component in ("notification-token", "share", "haptic"):
+    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu"):
         if f'"{component}"' not in registrar:
             fail(f"missing bridge registration {component}")
 
@@ -103,13 +103,27 @@ def main() -> None:
 
     bridge_dir = ROOT / "ios" / "HotwireNativeShell" / "Bridge"
     bridge_swift = "\n".join(path.read_text() for path in bridge_dir.glob("*.swift"))
-    for component in ("notification-token", "share", "haptic"):
+    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu"):
         if f'"{component}"' not in bridge_swift:
             fail(f"missing iOS bridge registration {component}")
     registrar_swift = (bridge_dir / "BridgeRegistrar.swift").read_text()
-    for component_type in ("NotificationTokenComponent", "ShareComponent", "HapticComponent"):
+    for component_type in (
+        "NotificationTokenComponent",
+        "ShareComponent",
+        "HapticComponent",
+        "MenuComponent",
+        "OverflowMenuComponent",
+    ):
         if f"{component_type}.self" not in registrar_swift:
             fail(f"missing iOS bridge type {component_type}")
+    native_ui = ROOT / "docs" / "NATIVE_UI.md"
+    if not native_ui.is_file():
+        fail("missing docs/NATIVE_UI.md")
+    native_ui_text = native_ui.read_text()
+    if "Hotwire Native" not in native_ui_text or "itsjustmy.blog" not in native_ui_text:
+        fail("native UI doc missing detection or title suffix")
+    if "nav.navbar" not in native_ui_text:
+        fail("native UI doc missing navbar hide target")
 
     token_swift = (ROOT / "ios" / "HotwireNativeShell" / "Bridge" / "NotificationTokenComponent.swift").read_text()
     if "placeholder-not-a-device-token" not in token_swift or '"placeholder"' not in token_swift:

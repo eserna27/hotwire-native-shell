@@ -28,7 +28,7 @@ Product → Run in Xcode launches the same scheme in the simulator. No signing c
 ## What it does
 
 1. `AppDelegate` reads `native/config.json` from the app bundle. That folder reference is [`flavors/itsjustmy/assets/native`](../flavors/itsjustmy/assets/native), the same file Android packages.
-2. It registers `notification-token`, `share`, and `haptic` because that file turns them on. There is no push entitlement and no APNs token. The notification bridge returns `placeholder-not-a-device-token`.
+2. It always registers `menu` and `overflow-menu` (native bar chrome). It registers `notification-token`, `share`, and `haptic` because the flavor file turns them on. There is no push entitlement and no APNs token. The notification bridge returns `placeholder-not-a-device-token`. The navigation bar title is the page's `document.title`. How Rails hides `nav.navbar` and drops the `| itsjustmy.blog` suffix is in [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
 3. It loads Hotwire path configuration from `path-configuration.json`, then tries `{base_url}/configurations/ios_v1.json`. Hotwire keeps the bundled rules when the remote URL 404s.
 4. `SceneDelegate` opens `base_url` + `start_path` in a `Navigator`. itsjustmy has no tabs, so there is no tab bar. A config with `tabs` uses `HotwireTabBarController` (at most four tabs, same cap as Android).
 5. A background request stores `GET /native/config`. The cache is used on the next cold start. If the site does not serve the route yet, the bundled JSON stays in effect.

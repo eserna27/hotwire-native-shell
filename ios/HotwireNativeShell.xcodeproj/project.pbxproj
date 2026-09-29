@@ -16,6 +16,8 @@
 		A10000000000000000000066 /* NotificationTokenComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000056 /* NotificationTokenComponent.swift */; };
 		A10000000000000000000067 /* ShareComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000057 /* ShareComponent.swift */; };
 		A10000000000000000000068 /* HapticComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000058 /* HapticComponent.swift */; };
+		A10000000000000000000082 /* MenuComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000080 /* MenuComponent.swift */; };
+		A10000000000000000000083 /* OverflowMenuComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000081 /* OverflowMenuComponent.swift */; };
 		A10000000000000000000070 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005B /* Assets.xcassets */; };
 		A10000000000000000000071 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005C /* Base */; };
 		A10000000000000000000072 /* path-configuration.json in Resources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005E /* path-configuration.json */; };
@@ -34,6 +36,8 @@
 		A10000000000000000000056 /* NotificationTokenComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationTokenComponent.swift; sourceTree = "<group>"; };
 		A10000000000000000000057 /* ShareComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareComponent.swift; sourceTree = "<group>"; };
 		A10000000000000000000058 /* HapticComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticComponent.swift; sourceTree = "<group>"; };
+		A10000000000000000000080 /* MenuComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuComponent.swift; sourceTree = "<group>"; };
+		A10000000000000000000081 /* OverflowMenuComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OverflowMenuComponent.swift; sourceTree = "<group>"; };
 		A10000000000000000000059 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A1000000000000000000005A /* Info-Debug.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Debug.plist"; sourceTree = "<group>"; };
 		A1000000000000000000005B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -92,7 +96,9 @@
 			children = (
 				A10000000000000000000055 /* BridgeRegistrar.swift */,
 				A10000000000000000000058 /* HapticComponent.swift */,
+				A10000000000000000000080 /* MenuComponent.swift */,
 				A10000000000000000000056 /* NotificationTokenComponent.swift */,
+				A10000000000000000000081 /* OverflowMenuComponent.swift */,
 				A10000000000000000000057 /* ShareComponent.swift */,
 			);
 			path = Bridge;
@@ -195,6 +201,8 @@
 				A10000000000000000000066 /* NotificationTokenComponent.swift in Sources */,
 				A10000000000000000000067 /* ShareComponent.swift in Sources */,
 				A10000000000000000000068 /* HapticComponent.swift in Sources */,
+				A10000000000000000000082 /* MenuComponent.swift in Sources */,
+				A10000000000000000000083 /* OverflowMenuComponent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

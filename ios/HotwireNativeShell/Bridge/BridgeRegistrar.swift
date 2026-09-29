@@ -1,17 +1,21 @@
 import HotwireNative
 import os
 
-/// Registers the bridge components whose contract flags are on.
+/// Registers bridge components.
 ///
-/// Component names match `@hotwired/hotwire-native-bridge` `static component`
-/// values (`notification-token`, `share`, `haptic`). Flags for components this
-/// skeleton does not ship stay off and are not registered, so they never
-/// appear in the WebView user agent.
+/// `menu` and `overflow-menu` are always registered. They are the native
+/// navigation chrome, not `/native/config` flags. The other names match
+/// `@hotwired/hotwire-native-bridge` `static component` values and are
+/// registered only when that flag is on. Flags this skeleton does not ship
+/// stay off, so they never appear in the WebView user agent.
 enum BridgeRegistrar {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "blog.itsjustmy.app", category: "BridgeRegistrar")
 
     static func componentTypes(for flags: BridgeFlags) -> [BridgeComponent.Type] {
-        var types = [BridgeComponent.Type]()
+        var types: [BridgeComponent.Type] = [
+            MenuComponent.self,
+            OverflowMenuComponent.self
+        ]
         if flags.notificationToken {
             types.append(NotificationTokenComponent.self)
         }

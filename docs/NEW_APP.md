@@ -50,7 +50,7 @@ cd android
 
 `GET /native/config` returns the same JSON. `GET /configurations/android_v1.json` returns the Hotwire path rules. Start from [rails-example/](../rails-example/README.md) and [CONTRACT.md](CONTRACT.md).
 
-Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`.
+Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`. `menu` and `overflow-menu` are already registered. The layout still has to hide the HTML navbar and drop the title suffix. See [NATIVE_UI.md](NATIVE_UI.md).
 
 ## 4. Check the offline path
 

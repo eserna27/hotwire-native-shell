@@ -14,7 +14,7 @@ A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rail
 - One Swift app on [Hotwire Native iOS 1.3.1](https://github.com/hotwired/hotwire-native-ios/releases/tag/1.3.1) (`HotwireNative` via Swift Package Manager).
 - A stable JSON contract, plus Hotwire's own path-configuration file.
 - A flavor per client on Android. iOS v1 is one target that bundles the itsjustmy flavor. Both use bundle id `blog.itsjustmy.app`.
-- Stub bridges for notification token, share, and haptic. Camera, biometric, clipboard, and file download stay off.
+- Native navigation chrome: `menu` and `overflow-menu` are always registered. Stub bridges for notification token, share, and haptic. Camera, biometric, clipboard, and file download stay off. The Rails rules for hiding the HTML navbar and the title suffix are in [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 
 ## What this is not
 
@@ -29,6 +29,7 @@ A reusable [Hotwire Native](https://native.hotwired.dev/) shell for our own Rail
 docs/CONTRACT.md          Rails ↔ native JSON
 docs/NEW_APP.md           another client (Nagama, …)
 docs/BRIDGES.md           bridge catalog
+docs/NATIVE_UI.md         native bar, hidden web navbar, titles
 android/                  Hotwire Native Android app
 ios/                      Hotwire Native iOS app
 flavors/itsjustmy/        sample flavor (bundle id in Gradle and in the Xcode target; JSON lives here)

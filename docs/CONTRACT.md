@@ -99,6 +99,8 @@ Boolean flags. The native component name (the Stimulus `static component` value)
 
 A flag that is `false` or absent is not registered, so it does not show up in the `bridge-components:` user-agent list. The web bridge then leaves the HTML in place. See [BRIDGES.md](BRIDGES.md).
 
+`menu` and `overflow-menu` are not flags. Both shells always register them so the native navigation bar can host the site's menu. The markup and the title rules are in [NATIVE_UI.md](NATIVE_UI.md).
+
 If a reserved flag is `true` and the shell has no component yet, Android and iOS log a warning and still do not register it. The iOS stubs for the three itsjustmy bridges match the Android ones, including the placeholder notification token.
 
 ### Push

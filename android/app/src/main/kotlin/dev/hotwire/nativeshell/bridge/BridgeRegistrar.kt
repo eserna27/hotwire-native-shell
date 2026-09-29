@@ -9,18 +9,22 @@ import dev.hotwire.navigation.destinations.HotwireDestination
 import dev.hotwire.nativeshell.config.BridgeFlags
 
 /**
- * Registers the bridge components whose contract flags are on.
+ * Registers bridge components.
  *
- * Component names match `@hotwired/hotwire-native-bridge` `static component`
- * values used by the public bridge catalog (`notification-token`, `share`,
- * `haptic`). Flags for components this skeleton does not ship stay off and
- * are not registered, so they never appear in the WebView user agent.
+ * `menu` and `overflow-menu` are always registered. They are the native
+ * navigation chrome, not `/native/config` flags. The other names match
+ * `@hotwired/hotwire-native-bridge` `static component` values and are
+ * registered only when that flag is on. Flags this skeleton does not ship
+ * stay off, so they never appear in the WebView user agent.
  */
 object BridgeRegistrar {
     private const val TAG = "BridgeRegistrar"
 
     fun register(flags: BridgeFlags) {
         val factories = ArrayList<BridgeComponentFactory<HotwireDestination, BridgeComponent<HotwireDestination>>>()
+
+        factories += BridgeComponentFactory("menu", ::MenuComponent)
+        factories += BridgeComponentFactory("overflow-menu", ::OverflowMenuComponent)
 
         if (flags.notificationToken) {
             factories += BridgeComponentFactory("notification-token", ::NotificationTokenComponent)

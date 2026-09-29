@@ -23,10 +23,11 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 1. [README.md](README.md) — what the shell is and is not.
 2. [docs/CONTRACT.md](docs/CONTRACT.md) — `GET /native/config` and path configuration.
 3. [docs/BRIDGES.md](docs/BRIDGES.md) — bridge catalog and the placeholder notification token.
-4. [docs/NEW_APP.md](docs/NEW_APP.md) — add a client flavor.
-5. [android/README.md](android/README.md) — toolchain, build, signing, emulator cleartext.
-6. [ios/README.md](ios/README.md) — Xcode scheme, simulator build, localhost cleartext.
-7. [rails-example/](rails-example/README.md) — sketch that serves the contract.
+4. [docs/NATIVE_UI.md](docs/NATIVE_UI.md) — native bar, the HTML navbar the Rails app must hide, and document titles.
+5. [docs/NEW_APP.md](docs/NEW_APP.md) — add a client flavor.
+6. [android/README.md](android/README.md) — toolchain, build, signing, emulator cleartext.
+7. [ios/README.md](ios/README.md) — Xcode scheme, simulator build, localhost cleartext.
+8. [rails-example/](rails-example/README.md) — sketch that serves the contract.
 
 Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -85,7 +86,7 @@ Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 ## Rails contract reminders
 
 - Path configuration is a separate document from `/native/config`. Android requests `GET /configurations/android_v1.json`. iOS requests `GET /configurations/ios_v1.json`. Bundled copies: `android/app/src/main/assets/json/path-configuration.json` and `ios/HotwireNativeShell/path-configuration.json`. A 404 on the remote URL is acceptable; the app keeps the bundled rules. iOS ignores the Android `uri` property.
-- The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). See [docs/BRIDGES.md](docs/BRIDGES.md).
+- The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). `menu` and `overflow-menu` are always registered and are not JSON keys. See [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 - Until a real push provider is added for that client, `notification-token` replies with `{ "token": "placeholder-not-a-device-token", "provider": "placeholder" }` on Android and iOS. Rails must ignore that string. `push.enabled` and `push.topics` are recorded at startup and are not subscribed. There is no FCM dependency and no APNs entitlement.
 
 ## Success criteria

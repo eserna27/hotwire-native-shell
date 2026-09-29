@@ -35,4 +35,4 @@ Add the routes in [`config/routes.rb`](config/routes.rb):
 
 Keep the response keys in [docs/CONTRACT.md](../docs/CONTRACT.md). Both shells ignore unknown keys and treat missing bridge flags as `false`.
 
-Install `@hotwired/hotwire-native-bridge` on the server before the bridge Stimulus controllers in [docs/BRIDGES.md](../docs/BRIDGES.md) will run. The sketch does not ship that package.
+Install `@hotwired/hotwire-native-bridge` on the server before the bridge Stimulus controllers in [docs/BRIDGES.md](../docs/BRIDGES.md) will run. The sketch does not ship that package. Hiding the HTML navbar and dropping the `| itsjustmy.blog` title suffix belong in the real Rails app. The contract is [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
