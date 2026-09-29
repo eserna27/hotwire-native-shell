@@ -1,0 +1,13 @@
+.DS_Store
+*.jks
+*.keystore
+google-services.json
+
+android/.gradle/
+android/local.properties
+android/.idea/
+android/keystore.properties
+android/**/build/
+
+rails-example/.bundle/
+rails-example/vendor/
