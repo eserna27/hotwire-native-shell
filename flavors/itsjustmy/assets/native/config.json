@@ -1,0 +1,19 @@
+{
+  "name": "itsjustmy",
+  "base_url": "https://itsjustmy.blog",
+  "start_path": "/",
+  "tabs": [],
+  "bridges": {
+    "notification_token": true,
+    "share": true,
+    "haptic": true,
+    "camera": false,
+    "biometric": false,
+    "clipboard": false,
+    "file_download": false
+  },
+  "push": {
+    "enabled": true,
+    "topics": ["posts"]
+  }
+}

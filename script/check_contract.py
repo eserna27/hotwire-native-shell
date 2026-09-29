@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""Check the itsjustmy contract file and the files that must keep pointing at it."""
+
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CONFIG_PATH = ROOT / "flavors" / "itsjustmy" / "assets" / "native" / "config.json"
+PATH_CONFIG = ROOT / "android" / "app" / "src" / "main" / "assets" / "json" / "path-configuration.json"
+
+EXPECTED_BRIDGE_KEYS = [
+    "notification_token",
+    "share",
+    "haptic",
+    "camera",
+    "biometric",
+    "clipboard",
+    "file_download",
+]
+
+
+def fail(message: str) -> None:
+    print(f"contract check failed: {message}", file=sys.stderr)
+    sys.exit(1)
+
+
+def main() -> None:
+    config = json.loads(CONFIG_PATH.read_text())
+    if config["name"] != "itsjustmy":
+        fail("name")
+    if config["base_url"] != "https://itsjustmy.blog":
+        fail("base_url")
+    if config["start_path"] != "/":
+        fail("start_path")
+    if config["tabs"] != []:
+        fail("tabs")
+    bridges = config["bridges"]
+    if list(bridges) != EXPECTED_BRIDGE_KEYS:
+        fail(f"bridge keys {list(bridges)}")
+    if bridges["notification_token"] is not True or bridges["share"] is not True or bridges["haptic"] is not True:
+        fail("expected notification_token, share, and haptic on")
+    for key in ("camera", "biometric", "clipboard", "file_download"):
+        if bridges[key] is not False:
+            fail(f"{key} should be off")
+    if config["push"] != {"enabled": True, "topics": ["posts"]}:
+        fail("push")
+
+    path_configuration = json.loads(PATH_CONFIG.read_text())
+    if "settings" not in path_configuration or "rules" not in path_configuration:
+        fail("path configuration needs settings and rules")
+    uris = [
+        rule["properties"].get("uri")
+        for rule in path_configuration["rules"]
+        if "uri" in rule.get("properties", {})
+    ]
+    if "hotwire://fragment/web" not in uris or "hotwire://fragment/web/modal/sheet" not in uris:
+        fail("path configuration uris")
+
+    gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text()
+    if 'applicationId = "blog.itsjustmy.app"' not in gradle:
+        fail("applicationId")
+    if "../flavors/itsjustmy/assets" not in gradle:
+        fail("flavor assets are not wired into the Android source set")
+    if "dev.hotwire:core:1.3.1" not in gradle or "dev.hotwire:navigation-fragments:1.3.1" not in gradle:
+        fail("Hotwire Native Android 1.3.1")
+
+    registrar = (ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "BridgeRegistrar.kt").read_text()
+    for component in ("notification-token", "share", "haptic"):
+        if f'"{component}"' not in registrar:
+            fail(f"missing bridge registration {component}")
+
+    ruby = (ROOT / "rails-example" / "lib" / "native_config.rb").read_text()
+    if "flavors/itsjustmy/assets/native/config.json" not in ruby:
+        fail("rails sketch does not read the flavor JSON")
+
+    print("contract check ok")
+
+
+if __name__ == "__main__":
+    main()
