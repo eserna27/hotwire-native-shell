@@ -37,7 +37,7 @@ getByName("nagama") {
 }
 ```
 
-Add `android/app/src/nagama/res/values/strings.xml` with `app_name`, and replace the launcher drawables if you have an icon. Until then, copy the itsjustmy placeholder and change it.
+Add `android/app/src/nagama/res/values/strings.xml` with `app_name`, and replace the launcher drawables with that client's icon. Until then, copy the itsjustmy launcher assets and swap the artwork.
 
 Build that client only:
 
@@ -50,7 +50,7 @@ cd android
 
 `GET /native/config` returns the same JSON. `GET /configurations/android_v1.json` returns the Hotwire path rules. Start from [rails-example/](../rails-example/README.md) and [CONTRACT.md](CONTRACT.md).
 
-Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`.
+Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`. `menu` and `overflow-menu` are already registered. The layout still has to hide the HTML navbar and drop the title suffix. See [NATIVE_UI.md](NATIVE_UI.md).
 
 ## 4. Check the offline path
 
@@ -58,4 +58,12 @@ The flavor JSON is inside the APK. Airplane mode on first launch should still op
 
 ## iOS
 
-Do not create an Xcode project yet. When you do, read the same `/native/config` and the same bridge names. Path rules can stay on `/configurations/ios_v1.json`. See [ios/README.md](../ios/README.md).
+v1 is one Xcode target, `HotwireNativeShell`, not a flavor matrix. The pilot bundle id is `blog.itsjustmy.app`, the same string as the Android `applicationId`. The launcher label on both platforms is `itsjustmy.blog` (`app_name` and `CFBundleDisplayName`). The target bundles [`flavors/itsjustmy/assets/native`](../flavors/itsjustmy/assets/native) so `native/config.json` in the app is that flavor file.
+
+To point the same target at another client:
+
+1. In `ios/HotwireNativeShell.xcodeproj/project.pbxproj`, change `PRODUCT_BUNDLE_IDENTIFIER` and `INFOPLIST_KEY_CFBundleDisplayName`.
+2. Point the `native` folder reference at `flavors/<name>/assets/native`.
+3. That client's Rails app must serve `GET /native/config` and `GET /configurations/ios_v1.json`.
+
+Do not add a second JSON contract or a push entitlement. Open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. See [ios/README.md](../ios/README.md).

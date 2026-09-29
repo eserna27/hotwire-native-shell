@@ -1,6 +1,6 @@
 # Rails contract
 
-`GET /native/config` tells a Hotwire Native shell which site to open and which bridge components to turn on. Android reads it today. iOS will read the same document later.
+`GET /native/config` tells a Hotwire Native shell which site to open and which bridge components to turn on. Android and iOS both read this document.
 
 This is the shell contract. It is not Hotwire's path configuration. Path configuration is a second JSON file, described at the bottom.
 
@@ -13,7 +13,7 @@ Accept: application/json
 
 No authentication in this skeleton. The response is public app metadata: name, origin, and feature flags. Do not put API keys, signing material, or user data in it.
 
-The Android shell requests `{base_url}/native/config`, where `base_url` comes from the flavor JSON already on the device. The first launch works offline from that file. A successful response is cached and used on the next cold start.
+Each shell requests `{base_url}/native/config`, where `base_url` comes from the flavor JSON already on the device. The first launch works offline from that file. A successful response is cached and used on the next cold start. Android stores that cache in app files. iOS stores the raw response under Application Support.
 
 ## Response
 
@@ -99,11 +99,13 @@ Boolean flags. The native component name (the Stimulus `static component` value)
 
 A flag that is `false` or absent is not registered, so it does not show up in the `bridge-components:` user-agent list. The web bridge then leaves the HTML in place. See [BRIDGES.md](BRIDGES.md).
 
-If a reserved flag is `true` and the shell has no component yet, Android logs a warning and still does not register it.
+`menu` and `overflow-menu` are not flags. Both shells always register them so the native navigation bar can host the site's menu. The markup and the title rules are in [NATIVE_UI.md](NATIVE_UI.md).
+
+If a reserved flag is `true` and the shell has no component yet, Android and iOS log a warning and still do not register it. The iOS stubs for the three itsjustmy bridges match the Android ones, including the placeholder notification token.
 
 ### Push
 
-`push.enabled` and `push.topics` are recorded at startup. This skeleton does not create an FCM token and does not subscribe to topics. `notification-token` replies with the literal `placeholder-not-a-device-token` until a client app adds Firebase. Do not store that string as a device token.
+`push.enabled` and `push.topics` are recorded at startup. This skeleton does not create a device token and does not subscribe to topics. `notification-token` replies with the literal `placeholder-not-a-device-token` until a client app adds a real provider (FCM on Android). iOS has no APNs entitlement in this skeleton. Do not store that string as a device token.
 
 ## Path configuration
 
@@ -113,9 +115,15 @@ Hotwire Native loads a different JSON for navigation rules (modals, pull to refr
 GET /configurations/android_v1.json
 ```
 
-iOS will ask for `/configurations/ios_v1.json`. The sketch serves the same bundled rules on both URLs until those rules need to differ. Version the filename (`android_v2.json`) when a shell release cannot read the old rules. Leave the old URL up for already-installed apps.
+iOS asks for:
 
-The bundled copy is [`android/app/src/main/assets/json/path-configuration.json`](../android/app/src/main/assets/json/path-configuration.json). Hotwire loads that file first, then a cached remote copy, then a fresh download. A 404 on the remote URL is fine: the app keeps the bundled rules.
+```
+GET /configurations/ios_v1.json
+```
+
+The sketch serves the same rules document on both URLs until those rules need to differ. Version the filename (`android_v2.json`, `ios_v2.json`) when a shell release cannot read the old rules. Leave the old URL up for already-installed apps.
+
+Android bundles [`android/app/src/main/assets/json/path-configuration.json`](../android/app/src/main/assets/json/path-configuration.json). iOS bundles [`ios/HotwireNativeShell/path-configuration.json`](../ios/HotwireNativeShell/path-configuration.json). Both files describe the same behavior: every path is the default context with pull to refresh, and `/new` and `/edit` are modals without pull to refresh. The Android file also sets `uri`, which iOS ignores. The iOS file omits `uri`. Hotwire loads the bundled file first, then a cached remote copy, then a fresh download. A 404 on the remote URL is fine: the app keeps the bundled rules.
 
 ```json
 {
@@ -141,4 +149,4 @@ The bundled copy is [`android/app/src/main/assets/json/path-configuration.json`]
 }
 ```
 
-`uri` values match the deep links on `HotwireWebFragment` and `HotwireWebBottomSheetFragment` in Hotwire Native Android 1.3.x.
+The example above is the Android bundled file. `uri` values match the deep links on `HotwireWebFragment` and `HotwireWebBottomSheetFragment` in Hotwire Native Android 1.3.x. iOS does not read `uri`.

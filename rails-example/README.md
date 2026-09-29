@@ -16,11 +16,12 @@ Then:
 ```sh
 curl -s localhost:9292/native/config
 curl -s localhost:9292/configurations/android_v1.json
+curl -s localhost:9292/configurations/ios_v1.json
 ```
 
-`GET /native/config` reads [`flavors/itsjustmy/assets/native/config.json`](../flavors/itsjustmy/assets/native/config.json). The path-configuration route reads the JSON bundled in the Android app. One file, two consumers.
+`GET /native/config` reads [`flavors/itsjustmy/assets/native/config.json`](../flavors/itsjustmy/assets/native/config.json). Both path-configuration routes read the JSON bundled in the Android app. iOS ignores the Android `uri` values in that document and uses `context` and `pull_to_refresh_enabled`.
 
-To load the sketch in the emulator, set the flavor `base_url` to `http://10.0.2.2:9292` (the host machine from the Android emulator). Debug builds allow cleartext to `10.0.2.2` and `localhost`. Release builds do not.
+To load the sketch in the Android emulator, set the flavor `base_url` to `http://10.0.2.2:9292` (the host machine from the emulator). Debug builds allow cleartext to `10.0.2.2` and `localhost`. The iOS Simulator uses the Mac's loopback, so set `base_url` to `http://localhost:9292` instead. The iOS Debug plist allows cleartext to `localhost` and `127.0.0.1` only. Release builds do not.
 
 ## Copy into a real Rails app
 
@@ -32,6 +33,6 @@ Add the routes in [`config/routes.rb`](config/routes.rb):
 
 [`app/controllers/native/configs_controller.rb`](app/controllers/native/configs_controller.rb) renders JSON. In the client app, replace `NativeConfig.payload` with a hash or a JSON file that lives in that app. Do not read this repository from production.
 
-Keep the response keys in [docs/CONTRACT.md](../docs/CONTRACT.md). The Android shell ignores unknown keys and treats missing bridge flags as `false`.
+Keep the response keys in [docs/CONTRACT.md](../docs/CONTRACT.md). Both shells ignore unknown keys and treat missing bridge flags as `false`.
 
-Install `@hotwired/hotwire-native-bridge` on the server before the bridge Stimulus controllers in [docs/BRIDGES.md](../docs/BRIDGES.md) will run. The sketch does not ship that package.
+Install `@hotwired/hotwire-native-bridge` on the server before the bridge Stimulus controllers in [docs/BRIDGES.md](../docs/BRIDGES.md) will run. The sketch does not ship that package. Hiding the HTML navbar and dropping the `| itsjustmy.blog` title suffix belong in the real Rails app. The contract is [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).

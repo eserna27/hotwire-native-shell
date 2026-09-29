@@ -19,14 +19,14 @@ The pilot flavor is `itsjustmy`:
 
 The debug APK is `app/build/outputs/apk/itsjustmy/debug/app-itsjustmy-debug.apk`.
 
-`applicationId` is `blog.itsjustmy.app`. The launcher name is **itsjustmy**. The icon is a placeholder monogram under `app/src/itsjustmy`.
+`applicationId` is `blog.itsjustmy.app`. The launcher name is **itsjustmy.blog**. The icon under `app/src/itsjustmy` is the [itsjustmy.blog favicon](https://itsjustmy.blog/icon.svg).
 
 Android Studio writes `local.properties` with your SDK path. That file is gitignored.
 
 ## What it does
 
 1. `ShellApplication` reads `native/config.json` from the flavor assets (packaged from `flavors/itsjustmy/assets`).
-2. It registers `notification-token`, `share`, and `haptic` because that file turns them on.
+2. It always registers `menu` and `overflow-menu` (native toolbar chrome). It registers `notification-token`, `share`, and `haptic` because the flavor file turns them on. The toolbar title is the page's document title. How Rails hides `nav.navbar` and drops the `| itsjustmy.blog` suffix is in [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
 3. It loads Hotwire path configuration from `assets/json/path-configuration.json`, then tries `{base_url}/configurations/android_v1.json`.
 4. `MainActivity` opens `base_url` + `start_path` in a `NavigatorHost`. itsjustmy has no tabs, so there is no bottom bar.
 5. A background request stores `GET /native/config`. The cache is used on the next cold start. If the site does not serve the route yet, the bundled JSON stays in effect.
@@ -50,3 +50,5 @@ Firebase Cloud Messaging is not a dependency. See [docs/BRIDGES.md](../docs/BRID
 ## Local Rails sketch
 
 Debug builds allow cleartext to `localhost`, `127.0.0.1`, and `10.0.2.2`. Point `base_url` at `http://10.0.2.2:9292` to hit `rails-example` from the emulator. Put the production origin back before you ship. Release builds keep `usesCleartextTraffic` off.
+
+The iOS shell is in [ios/README.md](../ios/README.md). It reads the same flavor JSON. The simulator uses `http://localhost:9292`, not `10.0.2.2`.
