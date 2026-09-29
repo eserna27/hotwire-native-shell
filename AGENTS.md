@@ -39,7 +39,7 @@ Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.
 | `base_url` | `https://itsjustmy.blog` |
 | Flavor directory | `flavors/itsjustmy/` |
 | Bundled contract | `flavors/itsjustmy/assets/native/config.json` (Android assets and the iOS `native` folder reference) |
-| Launcher name and icon | `android/app/src/itsjustmy/` and the iOS target (`app_name` / display name is **itsjustmy**) |
+| Launcher name and icon | `android/app/src/itsjustmy/` and the iOS target (`app_name` / `CFBundleDisplayName` is **itsjustmy.blog**) |
 | iOS project | `ios/HotwireNativeShell.xcodeproj`, scheme `HotwireNativeShell` |
 
 Open `android/` in Android Studio. JDK 17 or newer.

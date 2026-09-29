@@ -19,7 +19,7 @@ The pilot flavor is `itsjustmy`:
 
 The debug APK is `app/build/outputs/apk/itsjustmy/debug/app-itsjustmy-debug.apk`.
 
-`applicationId` is `blog.itsjustmy.app`. The launcher name is **itsjustmy**. The icon under `app/src/itsjustmy` is the [itsjustmy.blog favicon](https://itsjustmy.blog/icon.svg).
+`applicationId` is `blog.itsjustmy.app`. The launcher name is **itsjustmy.blog**. The icon under `app/src/itsjustmy` is the [itsjustmy.blog favicon](https://itsjustmy.blog/icon.svg).
 
 Android Studio writes `local.properties` with your SDK path. That file is gitignored.
 

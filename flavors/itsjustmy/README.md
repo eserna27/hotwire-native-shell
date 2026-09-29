@@ -5,7 +5,7 @@ Pilot flavor for [itsjustmy.blog](https://itsjustmy.blog).
 | | |
 | --- | --- |
 | Android `applicationId` and iOS bundle id | `blog.itsjustmy.app` |
-| Display name | itsjustmy |
+| Display name | itsjustmy.blog |
 | Contract | [`assets/native/config.json`](assets/native/config.json) |
 | Bridges on | `notification-token`, `share`, `haptic` |
 | Tabs | none (single Hotwire navigator at `/`) |

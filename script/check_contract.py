@@ -77,6 +77,11 @@ def main() -> None:
     ios_project = (ROOT / "ios" / "HotwireNativeShell.xcodeproj" / "project.pbxproj").read_text()
     if "PRODUCT_BUNDLE_IDENTIFIER = blog.itsjustmy.app;" not in ios_project:
         fail("iOS bundle id")
+    if ios_project.count("INFOPLIST_KEY_CFBundleDisplayName = itsjustmy.blog;") != 2:
+        fail("iOS display name")
+    android_name = (ROOT / "android" / "app" / "src" / "itsjustmy" / "res" / "values" / "strings.xml").read_text()
+    if "<string name=\"app_name\">itsjustmy.blog</string>" not in android_name:
+        fail("Android app_name")
     if "https://github.com/hotwired/hotwire-native-ios" not in ios_project or "version = 1.3.1;" not in ios_project:
         fail("Hotwire Native iOS 1.3.1")
     if "../flavors/itsjustmy/assets/native" not in ios_project:
