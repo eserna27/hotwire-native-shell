@@ -19,10 +19,14 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         self.window = window
 
-        if config.tabs.isEmpty {
+        let resolution = config.resolveTabs(languageTag: Locale.preferredLanguages.first ?? "en")
+        logTabs(resolution)
+
+        if resolution.tabs.count < 2 {
+            let start = resolution.tabs.first?.location ?? config.startLocation
             let navigator = Navigator(configuration: .init(
                 name: "main",
-                startLocation: config.startLocation
+                startLocation: start
             ))
             self.navigator = navigator
             window.rootViewController = navigator.rootViewController
@@ -31,13 +35,21 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
 
-        if config.tabs.count > ShellTabs.maxTabs {
-            logger.warning("Config declares \(config.tabs.count) tabs; showing the first \(ShellTabs.maxTabs).")
-        }
-
         let tabBarController = HotwireTabBarController(lazyLoadTabs: true)
         window.rootViewController = tabBarController
         window.makeKeyAndVisible()
-        tabBarController.load(ShellTabs.from(config))
+        tabBarController.load(ShellTabs.from(resolution.tabs))
+    }
+
+    private func logTabs(_ resolution: TabResolution) {
+        if resolution.dropped > 0 {
+            logger.warning("Ignored \(resolution.dropped) invalid tab entries in /native/config.")
+        }
+        if resolution.overflow > 0 {
+            logger.warning("Config has more than \(NativeConfig.maxTabs) valid tabs; showing the first \(NativeConfig.maxTabs).")
+        }
+        if resolution.tabs.count < 2 {
+            logger.info("Single navigator (\(resolution.tabs.count) valid tabs).")
+        }
     }
 }

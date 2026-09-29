@@ -33,8 +33,36 @@ def main() -> None:
         fail("base_url")
     if config["start_path"] != "/":
         fail("start_path")
-    if config["tabs"] != []:
-        fail("tabs")
+    tabs = config["tabs"]
+    expected_tabs = [
+        {
+            "id": "home",
+            "title": "Inicio",
+            "titles": {"es": "Inicio", "en": "Home"},
+            "path": "/",
+            "icon": "home",
+        },
+        {
+            "id": "about",
+            "title": "Acerca",
+            "titles": {"es": "Acerca", "en": "About"},
+            "path": "/acerca",
+            "icon": "info",
+            "sf_symbol": "info.circle",
+        },
+        {
+            "id": "sign_in",
+            "title": "Entrar",
+            "titles": {"es": "Entrar", "en": "Sign in"},
+            "path": "/users/sign_in",
+            "icon": "profile",
+            "android_icon": "ic_tab_profile",
+        },
+    ]
+    if tabs != expected_tabs:
+        fail(f"tabs {tabs}")
+    if len(tabs) < 2 or len(tabs) > 5:
+        fail("tab count")
     bridges = config["bridges"]
     if list(bridges) != EXPECTED_BRIDGE_KEYS:
         fail(f"bridge keys {list(bridges)}")
@@ -56,6 +84,50 @@ def main() -> None:
     ]
     if "hotwire://fragment/web" not in uris or "hotwire://fragment/web/modal/sheet" not in uris:
         fail("path configuration uris")
+
+    kotlin_config = (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "config" / "NativeConfig.kt"
+    ).read_text()
+    if "const val MAX_TABS = 5" not in kotlin_config:
+        fail("Android tab cap")
+    if "sf_symbol" not in kotlin_config or "android_icon" not in kotlin_config:
+        fail("Android tab icon fields")
+    shell_tabs = (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "config" / "ShellTabs.kt"
+    ).read_text()
+    for drawable in ("ic_tab_home", "ic_tab_posts", "ic_tab_search", "ic_tab_profile", "ic_tab_info"):
+        if drawable not in shell_tabs:
+            fail(f"missing Android tab icon {drawable}")
+    main_activity = (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "MainActivity.kt"
+    ).read_text()
+    if "resolution.tabs.size < 2" not in main_activity or "HotwireBottomNavigationController" not in main_activity:
+        fail("Android tab bar fallback")
+    tabs_layout = (ROOT / "android" / "app" / "src" / "main" / "res" / "layout" / "activity_main_tabs.xml").read_text()
+    for host in ("tab_host_0", "tab_host_1", "tab_host_2", "tab_host_3", "tab_host_4"):
+        if f"@+id/{host}" not in tabs_layout:
+            fail(f"missing {host}")
+    if not (ROOT / "android" / "app" / "src" / "main" / "res" / "drawable" / "ic_tab_info.xml").is_file():
+        fail("missing ic_tab_info")
+
+    ios_config = (ROOT / "ios" / "HotwireNativeShell" / "Config" / "NativeConfig.swift").read_text()
+    if "static let maxTabs = 5" not in ios_config:
+        fail("iOS tab cap")
+    scene = (ROOT / "ios" / "HotwireNativeShell" / "SceneDelegate.swift").read_text()
+    if "resolution.tabs.count < 2" not in scene or "HotwireTabBarController" not in scene:
+        fail("iOS tab bar fallback")
+    ios_tabs = (ROOT / "ios" / "HotwireNativeShell" / "Config" / "ShellTabs.swift").read_text()
+    for symbol in ("house", "doc.text", "magnifyingglass", "person", "info.circle"):
+        if symbol not in ios_tabs:
+            fail(f"missing iOS tab symbol {symbol}")
+
+    contract = (ROOT / "docs" / "CONTRACT.md").read_text()
+    for phrase in ("sf_symbol", "android_icon", "HotwireBottomNavigationController", "HotwireTabBarController", "at most five"):
+        if phrase not in contract:
+            fail(f"contract missing {phrase}")
+    native_ui = (ROOT / "docs" / "NATIVE_UI.md").read_text()
+    if "Bottom tabs" not in native_ui or "overflow-menu" not in native_ui:
+        fail("native UI tabs section")
 
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text()
     if 'applicationId = "blog.itsjustmy.app"' not in gradle:

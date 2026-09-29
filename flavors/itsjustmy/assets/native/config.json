@@ -2,7 +2,31 @@
   "name": "itsjustmy",
   "base_url": "https://itsjustmy.blog",
   "start_path": "/",
-  "tabs": [],
+  "tabs": [
+    {
+      "id": "home",
+      "title": "Inicio",
+      "titles": { "es": "Inicio", "en": "Home" },
+      "path": "/",
+      "icon": "home"
+    },
+    {
+      "id": "about",
+      "title": "Acerca",
+      "titles": { "es": "Acerca", "en": "About" },
+      "path": "/acerca",
+      "icon": "info",
+      "sf_symbol": "info.circle"
+    },
+    {
+      "id": "sign_in",
+      "title": "Entrar",
+      "titles": { "es": "Entrar", "en": "Sign in" },
+      "path": "/users/sign_in",
+      "icon": "profile",
+      "android_icon": "ic_tab_profile"
+    }
+  ],
   "bridges": {
     "notification_token": true,
     "share": true,

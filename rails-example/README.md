@@ -35,4 +35,6 @@ Add the routes in [`config/routes.rb`](config/routes.rb):
 
 Keep the response keys in [docs/CONTRACT.md](../docs/CONTRACT.md). Both shells ignore unknown keys and treat missing bridge flags as `false`.
 
+`GET /native/config` is the document that turns on bottom tabs. Put an ordered `tabs` array in the hash this app renders. Each item has `id`, `title`, optional `titles` (`es` / `en`), `icon`, and `path` or `url`. The sketch serves the itsjustmy flavor file, which already includes three tabs (`/`, `/acerca`, `/users/sign_in`). Path configuration stays on the `/configurations/*_v1.json` routes. Do not put tabs in that file. `menu` and `overflow-menu` are bridge components on the top bar; they are not tab entries. See [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).
+
 Install `@hotwired/hotwire-native-bridge` on the server before the bridge Stimulus controllers in [docs/BRIDGES.md](../docs/BRIDGES.md) will run. The sketch does not ship that package. Hiding the HTML navbar and dropping the `| itsjustmy.blog` title suffix belong in the real Rails app. The contract is [docs/NATIVE_UI.md](../docs/NATIVE_UI.md).

@@ -12,9 +12,11 @@ Edit `flavors/nagama/assets/native/config.json`:
 
 - `name`: `nagama`
 - `base_url`: the Rails origin
-- `start_path` or `tabs`
+- `start_path`, and `tabs` when that app should open with a bottom bar
 - `bridges`: only the components that app's Hotwire pages send
 - `push`: `enabled` and `topics`, or turn push off
+
+`tabs` is the ordered list in [CONTRACT.md](CONTRACT.md). Each item needs an `id`, a `title` (string, plus optional `titles` for `es` / `en`), an `icon` (`home`, `posts`, `search`, `profile`, or `info`), and a `path` or absolute `url`. Add `sf_symbol` or `android_icon` only to override that shared icon. Two usable tabs show the bar. One, or an empty list, keeps a single navigator. The shell ignores a bad item and keeps at most five. Those rules are already in the shell, so a later JSON change does not need a store build. A new Android drawable does.
 
 Leave unknown flags `false`.
 

@@ -86,6 +86,7 @@ Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 ## Rails contract reminders
 
 - Path configuration is a separate document from `/native/config`. Android requests `GET /configurations/android_v1.json`. iOS requests `GET /configurations/ios_v1.json`. Bundled copies: `android/app/src/main/assets/json/path-configuration.json` and `ios/HotwireNativeShell/path-configuration.json`. A 404 on the remote URL is acceptable; the app keeps the bundled rules. iOS ignores the Android `uri` property.
+- Bottom tabs are the optional `tabs` array on `/native/config`, not a second endpoint and not a path-configuration rule. Two or more usable items show a native bar (one navigator per tab). Fewer than two keeps the single navigator. The cap is five. Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md).
 - The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). `menu` and `overflow-menu` are always registered and are not JSON keys. See [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 - Until a real push provider is added for that client, `notification-token` replies with `{ "token": "placeholder-not-a-device-token", "provider": "placeholder" }` on Android and iOS. Rails must ignore that string. `push.enabled` and `push.topics` are recorded at startup and are not subscribed. There is no FCM dependency and no APNs entitlement.
 

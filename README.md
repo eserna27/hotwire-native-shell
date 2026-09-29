@@ -45,7 +45,31 @@ rails-example/            sketch that serves GET /native/config
   "name": "itsjustmy",
   "base_url": "https://itsjustmy.blog",
   "start_path": "/",
-  "tabs": [],
+  "tabs": [
+    {
+      "id": "home",
+      "title": "Inicio",
+      "titles": { "es": "Inicio", "en": "Home" },
+      "path": "/",
+      "icon": "home"
+    },
+    {
+      "id": "about",
+      "title": "Acerca",
+      "titles": { "es": "Acerca", "en": "About" },
+      "path": "/acerca",
+      "icon": "info",
+      "sf_symbol": "info.circle"
+    },
+    {
+      "id": "sign_in",
+      "title": "Entrar",
+      "titles": { "es": "Entrar", "en": "Sign in" },
+      "path": "/users/sign_in",
+      "icon": "profile",
+      "android_icon": "ic_tab_profile"
+    }
+  ],
   "bridges": {
     "notification_token": true,
     "share": true,
@@ -62,7 +86,9 @@ rails-example/            sketch that serves GET /native/config
 }
 ```
 
-Field rules, tabs, and the separate path-configuration URL are in [docs/CONTRACT.md](docs/CONTRACT.md). The file above is [`flavors/itsjustmy/assets/native/config.json`](flavors/itsjustmy/assets/native/config.json). Android and iOS both package it for offline launch and refresh it from the server when they can.
+Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md). The file above is [`flavors/itsjustmy/assets/native/config.json`](flavors/itsjustmy/assets/native/config.json). Android and iOS both package it for offline launch and refresh it from the server when they can.
+
+`tabs` is optional. Two or more usable entries turn on a native bottom bar, one navigator stack per tab, without a new build. Zero or one keeps the single navigator. The shell keeps at most five and skips a bad entry instead of crashing. `icon` is a shared name (`home`, `posts`, `search`, `profile`, `info`). `sf_symbol` and `android_icon` are optional per-platform overrides. `titles` is an `es` / `en` (or other language) map; a string `title` is the fallback. The three itsjustmy paths above are live public routes.
 
 Hotwire navigation rules (modal `/new` and `/edit`, pull to refresh) are `GET /configurations/android_v1.json` on Android and `GET /configurations/ios_v1.json` on iOS. They are not part of `/native/config`.
 

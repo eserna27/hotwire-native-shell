@@ -94,3 +94,15 @@ Hide the HTML trigger once the component is active:
 ```
 
 `share`, when its flag is on, is a separate bar button beside the ellipsis. The ellipsis stays the trailing item.
+
+## Bottom tabs
+
+Tabs come from `tabs` in `GET /native/config`, not from path configuration and not from `menu`. The shape, the five-tab cap, and the icon names are in [CONTRACT.md](CONTRACT.md).
+
+With two or more usable tabs, Android shows a Material bottom bar (`HotwireBottomNavigationController`) and iOS shows a tab bar (`HotwireTabBarController`). Each tab has its own navigator, so a push on Inicio does not change the stack on Acerca. Reselecting the active Android tab clears that tab back to its start path. Zero or one usable tab leaves the single navigator and draws no bar.
+
+The device language picks `titles.es` or `titles.en`. That is separate from the site's `/locale` cookie, which still switches the HTML. Tab labels update on the next cold start after a new config, not when the user taps ES / EN in the page.
+
+Path configuration still applies inside every tab. `/new` and `/edit` stay modals. A modal does not switch tabs. On Android the bottom bar hides while a modal is up and while the keyboard is up. The visit's `context` is not how you add or remove a tab.
+
+`menu` and `overflow-menu` stay on the top bar of whichever tab is visible. The ellipsis opens that page's action sheet. It is not a tab switcher. A page under any tab can send the same `menu` markup. The tab bar does not add bridge components, and the user agent does not gain a tab token.
