@@ -10,6 +10,6 @@ Pilot flavor for [itsjustmy.blog](https://itsjustmy.blog).
 | Bridges on | `notification-token`, `share`, `haptic` |
 | Tabs | none (single Hotwire navigator at `/`) |
 
-The Android `itsjustmy` source set packages `assets/` into the APK. The iOS target references `assets/native` as a folder, so the same JSON is the offline copy of `GET /native/config` on both platforms. The launcher icons are placeholder monograms.
+The Android `itsjustmy` source set packages `assets/` into the APK. The iOS target references `assets/native` as a folder, so the same JSON is the offline copy of `GET /native/config` on both platforms. The launcher icons are the site favicon (`/icon.svg` on itsjustmy.blog).
 
 `push.topics` lists `posts`. Both shells record that. Neither subscribes to Firebase or APNs yet.

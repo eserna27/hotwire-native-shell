@@ -77,7 +77,7 @@ Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 1. Copy `flavors/itsjustmy` to `flavors/<name>`.
 2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path` or `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
 3. In `android/app/build.gradle.kts`, next to `itsjustmy`, add a product flavor on dimension `client` with that client's `applicationId`, and set `assets.srcDir` to `../flavors/<name>/assets`.
-4. Add `android/app/src/<name>/res/values/strings.xml` with `app_name`, and a launcher icon. Copy the itsjustmy placeholder until a real icon exists.
+4. Add `android/app/src/<name>/res/values/strings.xml` with `app_name`, and a launcher icon. Copy the itsjustmy launcher assets until that client has its own icon.
 5. That client's Rails app must serve `GET /native/config`, `GET /configurations/android_v1.json`, and `GET /configurations/ios_v1.json`. The JSON must match [docs/CONTRACT.md](docs/CONTRACT.md). Start from [rails-example/](rails-example/README.md).
 6. Build that flavor only. Gradle capitalizes the flavor in the task name: `cd android && ./gradlew :app:assembleNagamaDebug` for a flavor named `nagama`.
 7. For iOS v1, point the existing target at the new flavor instead of adding a second app target. See [docs/NEW_APP.md](docs/NEW_APP.md).

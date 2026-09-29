@@ -4,7 +4,7 @@ Hotwire Native iOS app. Open `ios/HotwireNativeShell.xcodeproj` in Xcode 15 or n
 
 Pinned to [Hotwire Native iOS 1.3.1](https://github.com/hotwired/hotwire-native-ios/releases/tag/1.3.1) (`HotwireNative` via Swift Package Manager), the same release line as the Android shell. The app follows that project's demo: a UIKit `SceneDelegate`, `Navigator`, `Hotwire.loadPathConfiguration(from:)`, and `BridgeComponent` subclasses registered with `Hotwire.registerBridgeComponents`. Deployment target is iOS 15.6.
 
-The pilot bundle id is `blog.itsjustmy.app`. The home screen name is **itsjustmy**. The icon is a placeholder monogram.
+The pilot bundle id is `blog.itsjustmy.app`. The home screen name is **itsjustmy**. The app icon is the [itsjustmy.blog favicon](https://itsjustmy.blog/icon.svg).
 
 ## Build
 

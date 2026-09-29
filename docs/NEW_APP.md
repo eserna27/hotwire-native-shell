@@ -37,7 +37,7 @@ getByName("nagama") {
 }
 ```
 
-Add `android/app/src/nagama/res/values/strings.xml` with `app_name`, and replace the launcher drawables if you have an icon. Until then, copy the itsjustmy placeholder and change it.
+Add `android/app/src/nagama/res/values/strings.xml` with `app_name`, and replace the launcher drawables with that client's icon. Until then, copy the itsjustmy launcher assets and swap the artwork.
 
 Build that client only:
 
