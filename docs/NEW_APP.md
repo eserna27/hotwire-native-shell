@@ -41,6 +41,16 @@ getByName("nagama") {
 
 Add `android/app/src/nagama/res/values/strings.xml` with `app_name`, and replace the launcher drawables with that client's icon. Until then, copy the itsjustmy launcher assets and swap the artwork.
 
+## Splash
+
+The launch screen is that client's favicon on a solid color.
+
+Android uses the AndroidX splash screen (`Theme.SplashScreen` in `android/app/src/main/res/values/themes.xml`), so the same theme works below API 31. `windowSplashScreenAnimatedIcon` is `@drawable/ic_splash`. itsjustmy's drawable layers the launcher background and foreground, which are the site favicon. Copy `android/app/src/itsjustmy/res/drawable/ic_splash.xml` with the launcher assets and replace that artwork. The window color is `@color/splash_background` in `android/app/src/<name>/res/values/colors.xml`. The `main` default is white (`#FFFFFF`). itsjustmy sets the same white there so the flavor file is the override.
+
+`MainActivity` keeps the splash up until the first Hotwire visit renders or that visit fails. If the network never answers, it gives up after 8 seconds.
+
+iOS v1 has one target, so the splash assets live in the asset catalog. `LaunchScreen.storyboard` centers `SplashIcon` on the named color `SplashBackground`. Replace `ios/HotwireNativeShell/Assets.xcassets/SplashIcon.imageset/splash.png` and `SplashBackground.colorset` when you point the target at another client. The system removes that screen when the first frame draws.
+
 Build that client only:
 
 ```sh
@@ -66,6 +76,7 @@ To point the same target at another client:
 
 1. In `ios/HotwireNativeShell.xcodeproj/project.pbxproj`, change `PRODUCT_BUNDLE_IDENTIFIER` and `INFOPLIST_KEY_CFBundleDisplayName`.
 2. Point the `native` folder reference at `flavors/<name>/assets/native`.
-3. That client's Rails app must serve `GET /native/config` and `GET /configurations/ios_v1.json`.
+3. Replace `SplashIcon.imageset/splash.png` with that client's favicon and set `SplashBackground.colorset`. See [Splash](#splash).
+4. That client's Rails app must serve `GET /native/config` and `GET /configurations/ios_v1.json`.
 
 Do not add a second JSON contract or a push entitlement. Open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. See [ios/README.md](../ios/README.md).

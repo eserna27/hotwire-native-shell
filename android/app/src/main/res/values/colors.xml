@@ -2,4 +2,6 @@
 <resources>
     <color name="seed">#1F3A34</color>
     <color name="ic_launcher_background">#1F3A34</color>
+    <!-- Window behind the splash icon. A flavor overrides this in its own colors.xml. -->
+    <color name="splash_background">#FFFFFF</color>
 </resources>

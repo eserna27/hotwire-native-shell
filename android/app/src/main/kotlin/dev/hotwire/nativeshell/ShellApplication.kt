@@ -9,7 +9,6 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerFragmentDestinations
 import dev.hotwire.navigation.fragments.HotwireWebBottomSheetFragment
-import dev.hotwire.navigation.fragments.HotwireWebFragment
 import dev.hotwire.nativeshell.bridge.BridgeRegistrar
 import dev.hotwire.nativeshell.config.NativeConfig
 import dev.hotwire.nativeshell.config.NativeConfigStore
@@ -28,9 +27,9 @@ class ShellApplication : Application() {
     }
 
     private fun configureHotwire(config: NativeConfig) {
-        Hotwire.defaultFragmentDestination = HotwireWebFragment::class
+        Hotwire.defaultFragmentDestination = ShellWebFragment::class
         Hotwire.registerFragmentDestinations(
-            HotwireWebFragment::class,
+            ShellWebFragment::class,
             HotwireWebBottomSheetFragment::class
         )
         BridgeRegistrar.register(config.bridges)
