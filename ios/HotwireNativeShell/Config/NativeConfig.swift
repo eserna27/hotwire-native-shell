@@ -124,7 +124,18 @@ struct TabResolution: Sendable {
 
 struct PresentedTabs: Sendable {
     var resolution: TabResolution
-    var selectedIndex: Int
+    /// First kept tab with `active`, or nil when the payload marks none.
+    /// Cold start still selects tab 0. A live page that omits `active` must not.
+    var selectedIndex: Int?
+    /// Page to open when this presentation is a single navigator with no tab
+    /// of its own. Set from the `tabs: []` message that left the signed-in bar.
+    var singleRoot: URL?
+
+    init(resolution: TabResolution, selectedIndex: Int?, singleRoot: URL? = nil) {
+        self.resolution = resolution
+        self.selectedIndex = selectedIndex
+        self.singleRoot = singleRoot
+    }
 }
 
 struct ResolvedTab: Sendable, Equatable {
@@ -149,7 +160,7 @@ func presentTabs(baseUrl: String, items: [(NativeTab, Bool)], languageTag: Strin
     }
     let overflow = max(0, valid.count - NativeConfig.maxTabs)
     let kept = Array(valid.prefix(NativeConfig.maxTabs))
-    let selected = kept.firstIndex(where: { $0.1 }) ?? 0
+    let selected = kept.firstIndex(where: { $0.1 })
     return PresentedTabs(
         resolution: TabResolution(
             tabs: kept.map { $0.0 },
@@ -487,5 +498,121 @@ enum Shell {
 
     static func use(_ config: NativeConfig) {
         stored = config
+    }
+}
+
+/// What one `tabs` bridge `connect` should do.
+///
+/// The Android copy is `TabChromePlan` in `TabChromePlan.kt`. Keep the two aligned.
+///
+/// A modal is ignored. The same tab list does not rebuild. A page with no
+/// `active` flag does not move the selection. A URL that belongs to another
+/// tab is shown on that tab. A different list replaces every navigator.
+/// `tabs: []` roots the new navigator at the page that sent the message, and
+/// a later `[]` does not replace again.
+enum TabChromeDecision {
+    case ignore
+    case keep
+    case route(index: Int, url: URL)
+    case replace(PresentedTabs)
+}
+
+enum TabChromePlan {
+    static func decide(
+        currentTabs: [ResolvedTab],
+        next: PresentedTabs,
+        sourceLocation: String,
+        currentIndex: Int?,
+        isModal: Bool
+    ) -> TabChromeDecision {
+        if isModal { return .ignore }
+        if currentTabs == next.resolution.tabs {
+            return selection(next: next, sourceLocation: sourceLocation, currentIndex: currentIndex)
+        }
+        let root = next.resolution.tabs.isEmpty ? httpURL(sourceLocation) : nil
+        let index = next.resolution.tabs.count < 2 ? next.selectedIndex : (next.selectedIndex ?? 0)
+        return .replace(PresentedTabs(
+            resolution: next.resolution,
+            selectedIndex: index,
+            singleRoot: root
+        ))
+    }
+
+    /// Longest tab path that owns `location`. A tab path of `/` owns every
+    /// path on that origin. `/dashboard/posts` wins over `/dashboard`.
+    static func owningTabIndex(location: String, tabs: [ResolvedTab]) -> Int? {
+        guard let page = parse(location) else { return nil }
+        var bestIndex: Int?
+        var bestLength = -1
+        for (index, tab) in tabs.enumerated() {
+            guard let root = parse(tab.location.absoluteString), root.origin == page.origin else { continue }
+            guard pathOwns(tabPath: root.path, locationPath: page.path) else { continue }
+            if root.path.count > bestLength {
+                bestIndex = index
+                bestLength = root.path.count
+            }
+        }
+        return bestIndex
+    }
+
+    static func sameDocument(_ left: URL?, _ right: URL?) -> Bool {
+        guard let left, let right,
+              let a = parse(left.absoluteString),
+              let b = parse(right.absoluteString) else {
+            return false
+        }
+        return a.origin == b.origin && normalizePath(a.path) == normalizePath(b.path)
+    }
+
+    private static func selection(
+        next: PresentedTabs,
+        sourceLocation: String,
+        currentIndex: Int?
+    ) -> TabChromeDecision {
+        let tabs = next.resolution.tabs
+        if tabs.count < 2 { return .keep }
+        guard let url = httpURL(sourceLocation) else { return .keep }
+        if let owner = owningTabIndex(location: sourceLocation, tabs: tabs),
+           let currentIndex,
+           owner != currentIndex {
+            return .route(index: owner, url: url)
+        }
+        return .keep
+    }
+
+    private static func pathOwns(tabPath: String, locationPath: String) -> Bool {
+        let tab = normalizePath(tabPath)
+        let loc = normalizePath(locationPath)
+        if tab == "/" { return true }
+        return loc == tab || loc.hasPrefix(tab + "/")
+    }
+
+    private static func normalizePath(_ path: String) -> String {
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || trimmed == "/" { return "/" }
+        var end = trimmed.endIndex
+        while end > trimmed.startIndex && trimmed[trimmed.index(before: end)] == "/" {
+            end = trimmed.index(before: end)
+        }
+        let stripped = String(trimmed[..<end])
+        return stripped.isEmpty ? "/" : stripped
+    }
+
+    private static func httpURL(_ value: String) -> URL? {
+        guard parse(value) != nil else { return nil }
+        return URL(string: value)
+    }
+
+    private static func parse(_ value: String) -> (origin: String, path: String)? {
+        guard let url = URL(string: value),
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host?.lowercased(),
+              !host.isEmpty else {
+            return nil
+        }
+        let port = url.port ?? (scheme == "http" ? 80 : 443)
+        let path = url.path.isEmpty ? "/" : url.path
+        return ("\(scheme)://\(host):\(port)", path)
     }
 }

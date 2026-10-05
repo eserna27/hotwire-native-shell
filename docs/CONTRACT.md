@@ -89,7 +89,7 @@ The shell ignores unknown keys. Add fields when you need them. Do not rename or 
 
 `tabs` on this document is the cold-start list. The shell shows it before any page has connected the `tabs` bridge. It is not a bridge flag. The page replaces the list by sending `connect` from the Stimulus controller in [BRIDGES.md](BRIDGES.md). The markup is in [NATIVE_UI.md](NATIVE_UI.md). Changing either the document or the markup needs no store build.
 
-Each usable entry becomes its own navigator stack: `HotwireBottomNavigationController` on Android and `HotwireTabBarController` on iOS. The same resolved list, sent again from a later page, only changes which tab is selected. A different list rebuilds those navigators.
+Each usable entry becomes its own navigator stack: `HotwireBottomNavigationController` on Android and `HotwireTabBarController` on iOS. The same resolved list, sent again from a later page, leaves those navigators in place. A page with no `active` tab does not move the selection. A different list replaces the navigators. Login, logout, and a cached cold-start list are described in [NATIVE_UI.md](NATIVE_UI.md).
 
 Two usable tabs are the minimum that shows a bar. Zero or one keeps the single navigator. A lone usable tab supplies that navigator's start location. With zero, the shell opens `start_path`.
 
@@ -105,7 +105,7 @@ The shell keeps at most five tabs, which is Material's bottom-bar limit and the 
 | `icon` | no | Shared catalog name. Default `home`. Unknown names use `home`. |
 | `sf_symbol` | no | iOS-only SF Symbol, such as `info.circle`. Used when the system can draw it. Unknown names fall back to `icon`. |
 | `android_icon` | no | Android drawable resource name already in the APK, such as `ic_tab_profile`. Unknown names fall back to `icon`. |
-| `active` | no | Bridge payload only. `true` or the string `"true"` selects that tab. The first kept tab with this set wins. Config entries omit it, so cold start selects the first tab. |
+| `active` | no | Bridge payload only. `true` or the string `"true"` marks the tab a new bar selects. The first kept tab with this set wins. No `active` entry leaves the current selection in place. Config entries omit it, so cold start selects the first tab. |
 
 `title` stays a string in the bundled file so a shell that only decodes a string can still read the tab. A locale object in `title` is accepted by this shell. An older shell that requires a string will refuse the whole remote document and keep its previous copy. Prefer a string `title` plus `titles` when both shells are in the field. `titles`, `url`, `sf_symbol`, and `android_icon` are extra keys. A shell that does not know them ignores them.
 

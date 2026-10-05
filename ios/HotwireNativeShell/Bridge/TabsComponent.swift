@@ -16,7 +16,19 @@ final class TabsComponent: BridgeComponent {
             logger.warning("Unknown event for message: \(message.event, privacy: .public)")
             return
         }
-        TabChrome.update(jsonData: message.jsonData)
+        let location = delegate?.location ?? ""
+        TabChrome.update(
+            jsonData: message.jsonData,
+            sourceLocation: location,
+            isModal: isModal(location),
+            webView: delegate?.webView
+        )
+    }
+
+    private func isModal(_ location: String) -> Bool {
+        guard let url = URL(string: location) else { return false }
+        let context = Hotwire.config.pathConfiguration.properties(for: url)["context"]
+        return (context as? String) == "modal"
     }
 
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "blog.itsjustmy.app", category: "TabsComponent")

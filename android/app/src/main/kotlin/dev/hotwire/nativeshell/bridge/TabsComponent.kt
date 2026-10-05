@@ -25,12 +25,19 @@ class TabsComponent(
             Log.w(TAG, "Unknown event for message: $message")
             return
         }
-        val activity = bridgeDelegate.destination.fragment.activity as? MainActivity
+        val destination = bridgeDelegate.destination
+        val activity = destination.fragment.activity as? MainActivity
         if (activity == null) {
             Log.w(TAG, "No activity for the tabs bridge")
             return
         }
-        TabChrome.update(activity, message.jsonData)
+        TabChrome.update(
+            activity = activity,
+            jsonData = message.jsonData,
+            sourceLocation = destination.location,
+            isModal = destination.isModal,
+            currentIndex = activity.tabIndex(destination)
+        )
     }
 
     private companion object {
