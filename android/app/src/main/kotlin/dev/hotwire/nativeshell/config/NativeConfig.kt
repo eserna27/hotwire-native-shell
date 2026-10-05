@@ -69,7 +69,18 @@ data class TabResolution(
 
 data class PresentedTabs(
     val resolution: TabResolution,
-    val selectedIndex: Int
+    /**
+     * Index of the first kept tab with `active`, or null when the payload
+     * marks none. Cold start still selects tab 0; a live page that omits
+     * `active` must not.
+     */
+    val selectedIndex: Int?,
+    /**
+     * Page to open when this presentation is a single navigator with no tab
+     * of its own. Set from the `tabs: []` message that left the signed-in
+     * bar, so logout stays on sign-in instead of the cached `start_path`.
+     */
+    val singleRoot: String? = null
 )
 
 private val bridgeJson = Json { ignoreUnknownKeys = true }
@@ -109,7 +120,7 @@ fun presentTabs(
     }
     val overflow = (valid.size - NativeConfig.MAX_TABS).coerceAtLeast(0)
     val kept = valid.take(NativeConfig.MAX_TABS)
-    val selected = kept.indexOfFirst { it.second }.let { if (it < 0) 0 else it }
+    val selected = kept.indexOfFirst { it.second }.takeIf { it >= 0 }
     return PresentedTabs(
         resolution = TabResolution(
             tabs = kept.map { it.first },
@@ -330,6 +341,8 @@ private fun joinHttp(baseUrl: String, path: String): String? {
     val normalized = if (relative.startsWith("/")) relative else "/$relative"
     return httpUrl(base + normalized)
 }
+
+internal fun canonicalHttpLocation(value: String): String? = httpUrl(value)
 
 private fun httpUrl(value: String): String? {
     if (value.isEmpty() || value.any { it.isISOControl() }) return null

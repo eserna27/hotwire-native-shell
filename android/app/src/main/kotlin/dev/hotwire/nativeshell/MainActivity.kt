@@ -1,5 +1,8 @@
 package dev.hotwire.nativeshell
 
+import android.app.Activity
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,6 +12,8 @@ import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dev.hotwire.navigation.activities.HotwireActivity
+import dev.hotwire.navigation.destinations.HotwireDestination
+import dev.hotwire.navigation.navigator.Navigator
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
 import dev.hotwire.navigation.tabs.navigatorConfigurations
@@ -16,6 +21,7 @@ import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.nativeshell.config.NativeConfig
 import dev.hotwire.nativeshell.config.PresentedTabs
 import dev.hotwire.nativeshell.config.ShellTabs
+import dev.hotwire.nativeshell.config.TabChromePlan
 import java.util.Locale
 
 class MainActivity : HotwireActivity() {
@@ -54,8 +60,66 @@ class MainActivity : HotwireActivity() {
             lazyLoadTabs = true
         )
         bottomNavigationController = controller
-        val index = presented.selectedIndex.coerceIn(0, presented.resolution.tabs.lastIndex)
+        val index = (presented.selectedIndex ?: 0).coerceIn(0, presented.resolution.tabs.lastIndex)
         controller.load(ShellTabs.from(this, config, presented.resolution.tabs), index)
+    }
+
+    /**
+     * Login and logout start a new task so the previous navigator fragments
+     * are not restored from saved state.
+     */
+    fun relaunchFresh() {
+        val launch = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        startActivity(launch)
+        if (Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
+        finish()
+    }
+
+    /**
+     * Index of the tab navigator that is showing [destination]. A hidden tab
+     * can still send `connect` after a pop; that index is the one that matters,
+     * not whichever tab is selected.
+     */
+    fun tabIndex(destination: HotwireDestination): Int? {
+        if (presented().resolution.tabs.size < 2) return null
+        val name = destination.navigator.configuration.name
+        val index = presented().resolution.tabs.indexOfFirst { it.id == name }
+        return index.takeIf { it >= 0 }
+    }
+
+    /**
+     * Shows [location] on the tab that owns it and pops that visit off the
+     * navigator that received it, when that navigator is a different tab.
+     */
+    fun routeToTab(index: Int, location: String, fromIndex: Int?) {
+        val controller = bottomNavigationController ?: return
+        val tabs = presented().resolution.tabs
+        if (index !in tabs.indices) return
+        val fromNav = fromIndex?.let { navigatorAt(controller, it) }
+        if (fromIndex != index) {
+            controller.selectTab(index)
+        }
+        val hop = Runnable {
+            if (isFinishing || isDestroyed) return@Runnable
+            val target = navigatorAt(controller, index)
+            if (target != null && !TabChromePlan.sameDocument(target.location, location)) {
+                target.route(location)
+            }
+            if (fromNav != null && fromIndex != index && fromNav.isReady() &&
+                !fromNav.isAtStartDestination() &&
+                TabChromePlan.sameDocument(fromNav.location, location)
+            ) {
+                fromNav.pop()
+            }
+        }
+        window?.decorView?.post(hop) ?: hop.run()
     }
 
     override fun navigatorConfigurations(): List<NavigatorConfiguration> {
@@ -65,7 +129,9 @@ class MainActivity : HotwireActivity() {
             return listOf(
                 NavigatorConfiguration(
                     name = "main",
-                    startLocation = presented.resolution.tabs.firstOrNull()?.location ?: shellConfig.startLocation,
+                    startLocation = presented.singleRoot
+                        ?: presented.resolution.tabs.firstOrNull()?.location
+                        ?: shellConfig.startLocation,
                     navigatorHostId = R.id.main_nav_host
                 )
             )
@@ -78,12 +144,9 @@ class MainActivity : HotwireActivity() {
         super.onDestroy()
     }
 
-    fun selectTabIfNeeded(index: Int) {
-        val controller = bottomNavigationController ?: return
-        if (controller.tabs.isEmpty()) return
-        val safe = index.coerceIn(0, controller.tabs.lastIndex)
-        if (controller.view.selectedItemId == safe) return
-        controller.selectTab(safe)
+    private fun navigatorAt(controller: HotwireBottomNavigationController, index: Int): Navigator? {
+        val tab = controller.tabs.getOrNull(index) ?: return null
+        return delegate.findNavigatorHost(tab.configuration.navigatorHostId)?.navigator
     }
 
     private fun presented(): PresentedTabs {

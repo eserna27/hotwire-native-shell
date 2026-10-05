@@ -189,7 +189,7 @@ class NativeConfigTest {
         )
         checkNotNull(duplicate)
         assertEquals("https://itsjustmy.blog/", duplicate.resolution.tabs.single().location)
-        assertEquals(0, duplicate.selectedIndex)
+        assertNull(duplicate.selectedIndex)
     }
 
     @Test
@@ -205,7 +205,7 @@ class NativeConfigTest {
         val empty = parsePresentedTabs("""{"tabs":[]}""", "https://itsjustmy.blog", "en")
         checkNotNull(empty)
         assertTrue(empty.resolution.tabs.isEmpty())
-        assertEquals(0, empty.selectedIndex)
+        assertNull(empty.selectedIndex)
 
         val many = (1..6).joinToString(",") { index ->
             val active = if (index == 6) ""","active":true""" else ""
@@ -219,7 +219,7 @@ class NativeConfigTest {
         checkNotNull(overflow)
         assertEquals(5, overflow.resolution.tabs.size)
         assertEquals(1, overflow.resolution.overflow)
-        assertEquals(0, overflow.selectedIndex)
+        assertNull(overflow.selectedIndex)
         assertEquals("t5", overflow.resolution.tabs.last().id)
     }
 

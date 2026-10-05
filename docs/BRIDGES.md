@@ -229,13 +229,21 @@ Component name `tabs`. There is no JSON key. Both platforms always register it, 
 }
 ```
 
-`id`, `title`, `icon`, `path`, `url`, `sf_symbol`, `android_icon`, and `titles` follow the same rules as the cold-start list in [CONTRACT.md](CONTRACT.md). The page is already localized, so this controller sends one `title`. `active` is `true` for the tab that owns the current section. The first kept tab with `active` is selected. A later `true` past the five-tab cap is dropped with that tab.
+`id`, `title`, `icon`, `path`, `url`, `sf_symbol`, `android_icon`, and `titles` follow the same rules as the cold-start list in [CONTRACT.md](CONTRACT.md). The page is already localized, so this controller sends one `title`. `active` is `true` for the tab that owns the current section. The first kept tab with `active` is the one a new tab bar selects. A later `true` past the five-tab cap is dropped with that tab. A payload that marks no tab `active` does not move the current selection.
 
 A message with no `tabs` key, or a `tabs` value that is not an array, leaves the current bar alone. A present array is applied. Zero or one usable entry removes the bar and leaves the single navigator. `disconnect` does not remove the bar.
 
-Until the first `connect`, the shell shows `tabs` from `/native/config` when that document has two or more usable entries. That array is only the cold-start fallback.
+Until the first `connect`, the shell shows `tabs` from `/native/config` when that document has two or more usable entries. That array is only the cold-start fallback. A cached document from an older install loses to the first `connect`.
 
-The same resolved list only changes the selected tab. Android does not reselect the tab that is already selected, because reselection clears that tab's back stack. A different list rebuilds the navigators: Android recreates the activity, and iOS calls `load` again or swaps the root between one navigator and the tab bar.
+The same resolved list does not rebuild the navigators. Android does not reselect the tab that is already selected, because reselection clears that tab's back stack. A different list replaces them. Android starts a new task, and iOS replaces the window root, so the previous back stacks are gone.
+
+What Rails can rely on:
+
+- Signed out, send `tabs: []`. The shell has one navigator. Sign-in, registration, password reset, and confirmation push on that stack.
+- After sign-in, send the signed-in tabs with `active` on Inicio. The shell opens that tab at `/dashboard` and leaves no sign-in page in any stack.
+- After sign-out, the sign-in page sends `tabs: []`. The shell drops the tab navigators and roots the new navigator at that sign-in URL. Back cannot return to the dashboard. The next signed-out page can send `tabs: []` again; that does not rebuild.
+- On a bar that is already showing, `active` does not switch tabs by itself. A URL that belongs to another tab is shown on the tab with the longest matching path. `/dashboard/posts` wins over `/dashboard`. A tab path of `/` matches the rest of that origin. A page that matches no tab stays where it was pushed. `active` chooses the selected tab when the bar is first built.
+- A modal screen (`context: modal`, including `/dashboard/posts/new`) can omit this controller. If the layout still sends `connect`, the shell ignores it and does not switch tabs.
 
 ```javascript
 import { BridgeComponent, BridgeElement } from "@hotwired/hotwire-native-bridge"
@@ -304,7 +312,7 @@ export default class extends BridgeComponent {
 }
 ```
 
-Ship this file from the Rails app (`eserna27/blogs`). This repository does not. Put the nav in the layout and mark only the current section `data-bridge-active="true"`. An inner page that repeats the same list keeps the stacks. Path configuration still applies inside each tab. `menu` and `overflow-menu` stay on that tab's top bar.
+Ship this file from the Rails app (`eserna27/blogs`). This repository does not. Put the nav in the layout and mark only the current section `data-bridge-active="true"`. An inner page that repeats the same list keeps the stacks. Omit `active` on a page that belongs to no tab. Path configuration still applies inside each tab. `menu` and `overflow-menu` stay on that tab's top bar. A modal path does not change the bar.
 
 ## Reserved, off
 

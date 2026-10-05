@@ -124,7 +124,7 @@ The live tab list is the `tabs` bridge, always registered, the same way as `menu
 </nav>
 ```
 
-`data-bridge-active="true"` selects that tab. Mark the section that owns the page, including when the nav lives in the layout. `data-bridge-title` is the native label. `data-bridge-id`, `data-bridge-icon`, and `data-bridge-path` match the contract fields. A link's `href` supplies the path when `data-bridge-path` is absent. `data-bridge-url` is the absolute URL for a cross-origin tab. `data-bridge-disabled="true"` omits that link.
+`data-bridge-active="true"` marks the tab a new bar selects. Mark the section that owns the page, including when the nav lives in the layout. Leaving every tab unmarked leaves the current selection in place. `data-bridge-title` is the native label. `data-bridge-id`, `data-bridge-icon`, and `data-bridge-path` match the contract fields. A link's `href` supplies the path when `data-bridge-path` is absent. `data-bridge-url` is the absolute URL for a cross-origin tab. `data-bridge-disabled="true"` omits that link.
 
 Hide the HTML nav once the component is active. In a browser the same links stay on the page.
 
@@ -134,10 +134,21 @@ Hide the HTML nav once the component is active. In a browser the same links stay
 }
 ```
 
-With two or more usable tabs, each tab has its own navigator, so a push on Inicio does not change the stack on Acerca. Sending the same list again only updates the selection. Android skips a reselection of the tab that is already selected, so that tab's back stack stays. A different list rebuilds the navigators. Zero or one usable tab leaves the single navigator and draws no bar. An empty array, or an array whose entries are all unusable, does that on purpose. A bad entry is skipped. The shell keeps at most five.
+With two or more usable tabs, each tab has its own navigator, so a push on Inicio does not change the stack on Posts. Sending the same list again does not rebuild those navigators. Zero or one usable tab leaves the single navigator and draws no bar. An empty array, or an array whose entries are all unusable, does that on purpose. A bad entry is skipped. The shell keeps at most five.
+
+### Login, logout, and a cached config
+
+Rails can rely on this for the auth-first flow:
+
+- **Signed out.** The page sends `tabs: []`. The shell shows one navigator and no bar. Sign-in, registration, password reset, and confirmation are ordinary pushes on that navigator.
+- **Login.** When a page sends two or more tabs after that empty list, the shell discards the sign-in navigator and builds one fresh navigator per tab. The tab marked `active` is the one selected. That tab opens at its own path, so Inicio opens `/dashboard`. No sign-in page remains in any back stack. Android starts a new task so the old fragments are not restored. iOS replaces the window root.
+- **Logout.** When a page sends `tabs: []` again (the sign-in page after logout), the shell drops every tab navigator and shows one new navigator rooted at that page. Back cannot return to the dashboard. A later page in the signed-out flow that also sends `tabs: []` does not rebuild; it stays on the same navigator.
+- **Cached config.** `tabs` in a cached `/native/config` is only the cold start. The first `tabs` connect replaces it, whether that message is `[]` or the signed-in set. The shell does not return to the cached list after that.
+
+On a bar that is already showing, `active` does not switch tabs by itself, and a page that marks no tab `active` does not jump to the first tab. The shell moves only when the page URL belongs to a different tab: it shows that URL on the tab with the longest matching path and pops the copy that landed on the other stack. A tab path of `/` matches every path on that origin, and a longer path such as `/dashboard/posts` wins over `/dashboard`. A page whose path matches no tab, such as a public post, stays on the tab that pushed it. `active` chooses the selected tab when the bar is first built, which is how login lands on Inicio.
+
+A modal is ignored. `/new` and `/edit` stay `context: modal` in path configuration, which includes `/dashboard/posts/new` opened from the overflow menu. A `tabs` message from that screen does not rebuild the bar and does not switch tabs. On Android the bottom bar hides while a modal is up and while the keyboard is up. The visit's `context` is not how you add or remove a tab.
 
 The labels in the markup are whatever the page already rendered. The device language still picks `titles.es` or `titles.en` on the cold-start document, and on a bridge payload that includes `titles`. That choice is separate from the site's `/locale` cookie.
 
-Path configuration still applies inside every tab. `/new` and `/edit` stay modals. A modal does not switch tabs. On Android the bottom bar hides while a modal is up and while the keyboard is up. The visit's `context` is not how you add or remove a tab.
-
-`menu` and `overflow-menu` stay on the top bar of whichever tab is visible. The ellipsis opens that page's action sheet. A page under any tab can send the same `menu` markup.
+`menu` and `overflow-menu` stay on the top bar of whichever tab is visible. The ellipsis opens that page's action sheet. A page under any tab can send the same `menu` markup. "Nuevo post" is a menu item whose path is modal; it does not go through the tab list.
