@@ -1,9 +1,13 @@
 package dev.hotwire.nativeshell
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dev.hotwire.navigation.activities.HotwireActivity
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
@@ -18,10 +22,21 @@ class MainActivity : HotwireActivity() {
     private val config get() = ShellApplication.current
     private var bottomNavigationController: HotwireBottomNavigationController? = null
 
+    private val splashHandler = Handler(Looper.getMainLooper())
+    private val revealSplashAfterTimeout = Runnable {
+        findViewById<View>(android.R.id.content)?.invalidate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         TabChrome.commitPending()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        val splashStartedAt = SystemClock.uptimeMillis()
+        splashScreen.setKeepOnScreenCondition {
+            FirstVisitSplash.shouldKeepOnScreen(SystemClock.uptimeMillis() - splashStartedAt)
+        }
+        splashHandler.postDelayed(revealSplashAfterTimeout, FirstVisitSplash.TIMEOUT_MS)
 
         val presented = presented()
         logTabs(presented)
@@ -56,6 +71,11 @@ class MainActivity : HotwireActivity() {
             )
         }
         return ShellTabs.from(this, shellConfig, presented.resolution.tabs).navigatorConfigurations
+    }
+
+    override fun onDestroy() {
+        splashHandler.removeCallbacks(revealSplashAfterTimeout)
+        super.onDestroy()
     }
 
     fun selectTabIfNeeded(index: Int) {
