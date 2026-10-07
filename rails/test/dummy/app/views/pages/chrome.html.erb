@@ -1,0 +1,12 @@
+<title><%= native_document_title(@title) %></title>
+<%= native_tabs %>
+<% if @menu == "menu" %>
+  <%= native_menu %>
+<% else %>
+  <%= native_overflow_menu %>
+<% end %>
+<%= native_share(url: @share_url, title: @share_title) %>
+<%= native_notification_token %>
+<%= native_haptic(feedback: "success", label: "Saved") %>
+<% if native_oauth_allowed? %>oauth-allowed<% end %>
+<%= native_account_deletion_link("Delete account") %>

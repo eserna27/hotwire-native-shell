@@ -293,6 +293,42 @@ def main() -> None:
         if list((ROOT / "ios").glob(secret_name)):
             fail(f"secret in ios: {secret_name}")
 
+    gem_contract = (ROOT / "rails" / "lib" / "hotwire_native_shell" / "contract.rb").read_text()
+    for key in EXPECTED_BRIDGE_KEYS:
+        if f'"{key}"' not in gem_contract:
+            fail(f"gem contract missing bridge key {key}")
+    if "placeholder-not-a-device-token" not in gem_contract:
+        fail("gem contract missing placeholder token")
+    if "notification-token" not in gem_contract or "file-download" not in gem_contract:
+        fail("gem contract missing component names")
+    if "MAX_TABS = 5" not in gem_contract:
+        fail("gem contract tab cap")
+    if "hotwire://fragment/web/modal/sheet" not in gem_contract:
+        fail("gem contract path rules")
+
+    gemspec = (ROOT / "rails" / "hotwire_native_shell-rails.gemspec").read_text()
+    if 'spec.name = "hotwire_native_shell-rails"' not in gemspec or 'spec.license = "MIT"' not in gemspec:
+        fail("gemspec")
+    if not (ROOT / "rails" / "README.md").is_file():
+        fail("missing rails/README.md")
+    if "rails/README.md" not in (ROOT / "AGENTS.md").read_text():
+        fail("AGENTS.md does not point at the gem")
+
+    js_root = ROOT / "rails" / "app" / "javascript" / "hotwire_native_shell" / "bridge"
+    for component, filename in (
+        ("tabs", "tabs_controller.js"),
+        ("menu", "menu_controller.js"),
+        ("overflow-menu", "overflow_menu_controller.js"),
+        ("share", "share_controller.js"),
+        ("haptic", "haptic_controller.js"),
+        ("notification-token", "notification_token_controller.js"),
+    ):
+        source = (js_root / filename).read_text()
+        if f'static component = "{component}"' not in source:
+            fail(f"gem js missing {component}")
+    if "placeholder-not-a-device-token" not in (js_root / "notification_token_controller.js").read_text():
+        fail("gem notification controller")
+
     print("contract check ok")
 
 

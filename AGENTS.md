@@ -27,9 +27,10 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 5. [docs/NEW_APP.md](docs/NEW_APP.md) — add a client flavor.
 6. [android/README.md](android/README.md) — toolchain, build, signing, emulator cleartext.
 7. [ios/README.md](ios/README.md) — Xcode scheme, simulator build, localhost cleartext.
-8. [rails-example/](rails-example/README.md) — sketch that serves the contract.
-9. [bin/new-app](bin/new-app) — questionnaire (or `app.yml`) that writes a flavor. See [docs/NEW_APP.md](docs/NEW_APP.md).
-10. [docs/STORE_SCREENSHOTS.md](docs/STORE_SCREENSHOTS.md) — App Store and Play posters from [store/brand.yml](store/brand.yml).
+8. [rails-example/](rails-example/README.md) — sketch that serves the contract without a full Rails app.
+9. [rails/README.md](rails/README.md) — `hotwire_native_shell-rails`, the gem a real Rails app installs.
+10. [bin/new-app](bin/new-app) — questionnaire (or `app.yml`) that writes a flavor. See [docs/NEW_APP.md](docs/NEW_APP.md).
+11. [docs/STORE_SCREENSHOTS.md](docs/STORE_SCREENSHOTS.md) — App Store and Play posters from [store/brand.yml](store/brand.yml).
 
 Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -83,7 +84,7 @@ Checklist:
 2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path`, optional cold-start `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
 3. In `android/app/build.gradle.kts`, next to `itsjustmy`, add a product flavor on dimension `client` with that client's `applicationId`, and set `assets.srcDir` to `../flavors/<name>/assets`.
 4. Add `android/app/src/<name>/res/values/strings.xml` with `app_name`, and a launcher icon. Copy the itsjustmy launcher assets until that client has its own icon. The splash icon is `res/drawable/ic_splash.xml` (itsjustmy layers the launcher artwork) and the splash color is `@color/splash_background` in that flavor's `colors.xml`. On iOS, replace `SplashIcon` and `SplashBackground` in the asset catalog. See [docs/NEW_APP.md](docs/NEW_APP.md).
-5. That client's Rails app must serve `GET /native/config`, `GET /configurations/android_v1.json`, and `GET /configurations/ios_v1.json`. The JSON must match [docs/CONTRACT.md](docs/CONTRACT.md). Start from [rails-example/](rails-example/README.md).
+5. That client's Rails app installs [rails/](rails/README.md) (`hotwire_native_shell-rails`) so it serves `GET /native/config`, `GET /configurations/android_v1.json`, and `GET /configurations/ios_v1.json`. The JSON must match [docs/CONTRACT.md](docs/CONTRACT.md). The [rails-example/](rails-example/README.md) sketch is only the curl demo.
 6. Build that flavor only. Gradle capitalizes the flavor in the task name: `cd android && ./gradlew :app:assembleNagamaDebug` for a flavor named `nagama`.
 7. For iOS v1, point the existing target at the new flavor instead of adding a second app target. See [docs/NEW_APP.md](docs/NEW_APP.md).
 
@@ -102,4 +103,5 @@ An agent task on this repo is done when:
 - That flavor's bundled `native/config.json` matches the intended Rails origin (`base_url`, start path or tabs, bridge flags).
 - iOS still opens `ios/HotwireNativeShell.xcodeproj` on the `HotwireNativeShell` scheme. On a Mac, the `xcodebuild` command in [ios/README.md](ios/README.md) is the build. On Linux, `python3 script/check_contract.py` is the stand-in: it checks the bundle id, the flavor folder reference, and the bridge names. Do not claim `xcodebuild` passed if it did not run.
 - No secrets are in git (keystore, `keystore.properties`, `google-services.json`, `.p12`, provisioning profile). The committed itsjustmy target has no push entitlement.
+- `cd rails && bundle exec rake test` passes for the Rails gem.
 - Links in [README.md](README.md), this file, and `docs/` still point at files that exist.

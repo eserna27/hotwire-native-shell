@@ -5,6 +5,14 @@ __pycache__/
 *.keystore
 google-services.json
 *.p12
+*.p8
+
+rails/.bundle/
+rails/vendor/
+rails/pkg/
+rails/tmp/
+rails/test/dummy/tmp/
+rails/test/dummy/log/
 *.cer
 *.certSigningRequest
 *.mobileprovision

@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+class CreateHotwireNativeShellDeviceTokens < ActiveRecord::Migration[7.2]
+  def change
+    create_table :hotwire_native_shell_device_tokens do |t|
+      t.string :token, null: false
+      t.string :provider, null: false
+      t.string :platform
+      t.references :owner, polymorphic: true, index: true
+      t.datetime :last_seen_at
+      t.timestamps
+    end
+
+    add_index :hotwire_native_shell_device_tokens, :token, unique: true
+  end
+end

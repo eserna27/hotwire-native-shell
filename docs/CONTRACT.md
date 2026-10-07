@@ -67,7 +67,7 @@ itsjustmy, the pilot:
 }
 ```
 
-The canonical copy is [`flavors/itsjustmy/assets/native/config.json`](../flavors/itsjustmy/assets/native/config.json). The Rails sketch serves that file.
+The canonical copy is [`flavors/itsjustmy/assets/native/config.json`](../flavors/itsjustmy/assets/native/config.json). A Rails app serves the same shape from [`hotwire_native_shell-rails`](../rails/README.md). The sketch in `rails-example/` serves the flavor file for a local curl check.
 
 ## Fields
 

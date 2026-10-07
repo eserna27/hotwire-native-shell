@@ -92,9 +92,11 @@ cd android
 
 ## 3. Serve the contract from that Rails app
 
-`GET /native/config` returns the same JSON. `GET /configurations/android_v1.json` returns the Hotwire path rules. Start from [rails-example/](../rails-example/README.md) and [CONTRACT.md](CONTRACT.md).
+Install [`hotwire_native_shell-rails`](../rails/README.md) and run `bin/rails generate hotwire_native_shell:install`. The initializer is the config DSL: name, `base_url`, signed-in and signed-out start paths, tabs, bridge flags, and path rules. The gem serves `GET /native/config` and `GET /configurations/android_v1.json` / `ios_v1.json`. Field rules stay in [CONTRACT.md](CONTRACT.md).
 
-Install `@hotwired/hotwire-native-bridge` and the Stimulus controllers in [BRIDGES.md](BRIDGES.md) for every bridge you set to `true`. `menu`, `overflow-menu`, and `tabs` are already registered. The layout still has to hide the HTML navbar, drop the title suffix, and emit the tab nav. See [NATIVE_UI.md](NATIVE_UI.md).
+The generator copies the Stimulus controllers from [BRIDGES.md](BRIDGES.md) and pins `@hotwired/hotwire-native-bridge`. `menu`, `overflow-menu`, and `tabs` are already registered by the shell. Call `native_tabs` from the layout. Call `native_share`, `native_overflow_menu`, and `native_notification_token` only on the pages that need them. Hide the HTML navbar and drop the title suffix with `native_render_web_nav?` and `native_document_title`. See [NATIVE_UI.md](NATIVE_UI.md).
+
+[rails-example/](../rails-example/README.md) is the curl sketch. It is not the install path.
 
 ## 4. Check the offline path
 
