@@ -1,0 +1,46 @@
+/* CSS-drawn generic phone frame (no Apple assets). Size via --pw (outer width, px). */
+.phone{--pw:1000px;--frame:#141414;--bezel:calc(var(--pw)*0.032);--sw:calc(var(--pw) - 2*var(--bezel));
+  --k:calc(var(--sw)/390);position:absolute;width:var(--pw);height:calc(var(--sw)*844/390 + 2*var(--bezel));
+  background:var(--frame);border-radius:calc(var(--pw)*0.155);padding:var(--bezel);box-sizing:border-box;
+  box-shadow:0 0 0 calc(var(--pw)*0.004) rgba(255,255,255,.18) inset}
+.phone::before,.phone::after{content:"";position:absolute;background:var(--frame);border-radius:6px}
+.phone::before{left:calc(var(--pw)*-0.008);top:22%;width:calc(var(--pw)*0.012);height:7%}
+.phone::after{right:calc(var(--pw)*-0.008);top:28%;width:calc(var(--pw)*0.012);height:11%}
+.phone .scr{position:relative;width:100%;height:100%;overflow:hidden;background:#fff;border-radius:calc(var(--pw)*0.125)}
+.phone .sb{position:absolute;left:0;right:0;top:0;height:calc(54*var(--k));display:flex;align-items:center;justify-content:space-between;
+  padding:calc(6*var(--k)) calc(34*var(--k)) 0;box-sizing:border-box;font:600 calc(17*var(--k))/1 var(--font-ui), Inter, sans-serif;color:#000;z-index:3;background:#fff}
+.phone .sb .ic{display:flex;gap:calc(6*var(--k));align-items:center}
+.phone .sb svg{height:calc(12*var(--k));width:auto;display:block}
+.phone .island{position:absolute;left:50%;transform:translateX(-50%);top:calc(11*var(--k));width:calc(124*var(--k));height:calc(36*var(--k));
+  background:#000;border-radius:999px;z-index:5}
+.phone .nav{position:absolute;left:0;right:0;top:calc(54*var(--k));height:calc(44*var(--k));background:rgba(255,255,255,.96);z-index:3;
+  display:flex;align-items:center;justify-content:center;border-bottom:calc(.5*var(--k)) solid rgba(0,0,0,.18);
+  font:600 calc(17*var(--k))/1 var(--font-ui), Inter, sans-serif;color:#000}
+.phone .nav .t{max-width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phone .nav .back{position:absolute;left:calc(8*var(--k));top:50%;transform:translateY(-50%);color:var(--tint,#2563eb);
+  font:400 calc(17*var(--k))/1 var(--font-ui), Inter, sans-serif;display:flex;align-items:center;gap:calc(4*var(--k))}
+.phone .nav .back svg{height:calc(20*var(--k));width:auto}
+.phone .web{position:absolute;left:0;right:0;bottom:0;overflow:hidden}
+.phone .web img{display:block;width:100%}
+.phone .hi{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(8*var(--k));width:calc(134*var(--k));height:calc(5*var(--k));
+  background:#000;border-radius:9px;z-index:4}
+
+/* CSS-drawn generic tablet frame (no Apple assets). Screen 1032x1376pt (13" portrait). --tw = outer width. */
+.tablet{--tw:1600px;--frame:#141414;--tb:calc(var(--tw)*0.026);--tsw:calc(var(--tw) - 2*var(--tb));--k:calc(var(--tsw)/1032);
+  position:absolute;width:var(--tw);height:calc(var(--tsw)*1376/1032 + 2*var(--tb));background:var(--frame);
+  border-radius:calc(var(--tw)*0.05);padding:var(--tb);box-sizing:border-box;box-shadow:0 0 0 calc(var(--tw)*0.002) rgba(255,255,255,.18) inset}
+.tablet::before{content:"";position:absolute;right:calc(var(--tw)*-0.005);top:7%;width:calc(var(--tw)*0.007);height:5%;background:var(--frame);border-radius:6px}
+.tablet::after{content:"";position:absolute;left:50%;top:calc(var(--tb)*.5);width:calc(var(--tb)*.32);height:calc(var(--tb)*.32);transform:translate(-50%,-50%);border-radius:50%;background:#2a2f3a}
+.tablet .scr{position:relative;width:100%;height:100%;overflow:hidden;background:#fff;border-radius:calc(var(--tw)*0.026)}
+.tablet .sb{position:absolute;left:0;right:0;top:0;height:calc(32*var(--k));display:flex;align-items:center;justify-content:space-between;
+  padding:calc(4*var(--k)) calc(26*var(--k)) 0;box-sizing:border-box;font:600 calc(15*var(--k))/1 var(--font-ui), Inter, sans-serif;color:#000;z-index:3;background:#fff}
+.tablet .sb .ic{display:flex;gap:calc(6*var(--k));align-items:center}
+.tablet .sb svg{height:calc(11*var(--k));width:auto;display:block}
+.tablet .nav{position:absolute;left:0;right:0;top:calc(32*var(--k));height:calc(50*var(--k));background:rgba(255,255,255,.96);z-index:3;
+  display:flex;align-items:center;justify-content:center;border-bottom:calc(.5*var(--k)) solid rgba(0,0,0,.18);font:600 calc(17*var(--k))/1 var(--font-ui), Inter, sans-serif;color:#000}
+.tablet .nav .t{max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tablet .nav .back{position:absolute;left:calc(14*var(--k));top:50%;transform:translateY(-50%);color:var(--tint,#2563eb);display:flex;align-items:center}
+.tablet .nav .back svg{height:calc(22*var(--k));width:auto}
+.tablet .web{position:absolute;left:0;right:0;bottom:0;overflow:hidden}
+.tablet .web img{display:block;width:100%}
+.tablet .hi{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(8*var(--k));width:calc(320*var(--k));height:calc(5*var(--k));background:#000;border-radius:9px;z-index:4}

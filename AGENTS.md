@@ -16,7 +16,7 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 - Invent a different JSON contract, rename existing fields, or add a second config endpoint. A new key is allowed only when an already-shipped shell can ignore it. Field rules live in [docs/CONTRACT.md](docs/CONTRACT.md).
 - Commit secrets: keystores (`*.jks`, `*.keystore`), `keystore.properties`, `google-services.json`, API keys, signing passwords, `.p12` files, or provisioning profiles. Those paths are gitignored.
 - Add Firebase Cloud Messaging, the Google services plugin, or `google-services.json` unless the task explicitly asks for FCM on a named client.
-- Add an APNs entitlement, a push capability, or a signing identity. The Xcode project is [ios/HotwireNativeShell.xcodeproj](ios/HotwireNativeShell.xcodeproj). It has no push entitlement on purpose.
+- Add an APNs entitlement, a push capability, or a signing identity by hand. The committed Xcode project has no push entitlement on purpose. [bin/new-app](bin/new-app) writes the Push Notifications entitlement only when that client's answers turn push on, and only on the single iOS target. Do not leave that entitlement on the itsjustmy pilot.
 
 ## Reading order
 
@@ -28,6 +28,8 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 6. [android/README.md](android/README.md) — toolchain, build, signing, emulator cleartext.
 7. [ios/README.md](ios/README.md) — Xcode scheme, simulator build, localhost cleartext.
 8. [rails-example/](rails-example/README.md) — sketch that serves the contract.
+9. [bin/new-app](bin/new-app) — questionnaire (or `app.yml`) that writes a flavor. See [docs/NEW_APP.md](docs/NEW_APP.md).
+10. [docs/STORE_SCREENSHOTS.md](docs/STORE_SCREENSHOTS.md) — App Store and Play posters from [store/brand.yml](store/brand.yml).
 
 Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -73,7 +75,9 @@ xcodebuild \
 
 ## Adding a new app
 
-Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
+Prefer [bin/new-app](bin/new-app) (`--file app.yml` for a non-interactive run). It follows the checklist below and prints the manual steps it cannot do (Xcode signing, the APNs key in the Rails app, the Firebase project). Hand steps, if you are not using the command, are in [docs/NEW_APP.md](docs/NEW_APP.md).
+
+Checklist:
 
 1. Copy `flavors/itsjustmy` to `flavors/<name>`.
 2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path`, optional cold-start `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
@@ -97,5 +101,5 @@ An agent task on this repo is done when:
 - The flavor you touched builds (`:app:assemble<Flavor>Debug`).
 - That flavor's bundled `native/config.json` matches the intended Rails origin (`base_url`, start path or tabs, bridge flags).
 - iOS still opens `ios/HotwireNativeShell.xcodeproj` on the `HotwireNativeShell` scheme. On a Mac, the `xcodebuild` command in [ios/README.md](ios/README.md) is the build. On Linux, `python3 script/check_contract.py` is the stand-in: it checks the bundle id, the flavor folder reference, and the bridge names. Do not claim `xcodebuild` passed if it did not run.
-- No secrets are in git (keystore, `keystore.properties`, `google-services.json`, `.p12`, provisioning profile, push entitlement).
+- No secrets are in git (keystore, `keystore.properties`, `google-services.json`, `.p12`, provisioning profile). The committed itsjustmy target has no push entitlement.
 - Links in [README.md](README.md), this file, and `docs/` still point at files that exist.

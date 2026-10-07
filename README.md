@@ -30,9 +30,13 @@ docs/CONTRACT.md          Rails ↔ native JSON
 docs/NEW_APP.md           another client (Nagama, …)
 docs/BRIDGES.md           bridge catalog
 docs/NATIVE_UI.md         native bar, hidden web navbar, titles
+docs/STORE_SCREENSHOTS.md App Store and Play posters
+bin/new-app               questionnaire that writes a flavor
 android/                  Hotwire Native Android app
 ios/                      Hotwire Native iOS app
 flavors/itsjustmy/        sample flavor (bundle id in Gradle and in the Xcode target; JSON lives here)
+store/brand.yml           itsjustmy copy and colors for the screenshot toolkit
+tools/store-screenshots/  generic Portada renderer, frames, and capture scripts
 rails-example/            sketch that serves GET /native/config
 ```
 
@@ -126,7 +130,9 @@ The sketch in [rails-example/](rails-example/README.md) serves the flavor JSON a
 
 ## Another client
 
-Copy `flavors/itsjustmy`, add a Gradle flavor, and point that app's Rails at the same routes. iOS v1 is the one Xcode target; swap its bundle id and the bundled flavor folder. Steps are in [docs/NEW_APP.md](docs/NEW_APP.md).
+`bin/new-app` asks for the display name, bundle id, origins, colors, icon, tabs, bridges, and push, then writes the flavor, the Gradle source set, the iOS target, and `store/brand.yml`. The same answers can live in an `app.yml` file (`bin/new-app --file app.yml`). Steps done by hand, and the checklist the command prints, are in [docs/NEW_APP.md](docs/NEW_APP.md).
+
+App Store and Play posters are rendered from [store/brand.yml](store/brand.yml) by [tools/store-screenshots/](tools/store-screenshots/). The itsjustmy file is the Portada set (Spanish and English). See [docs/STORE_SCREENSHOTS.md](docs/STORE_SCREENSHOTS.md).
 
 ## License
 
