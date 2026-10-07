@@ -1,0 +1,14 @@
+{
+  "name": "store-screenshots",
+  "private": true,
+  "description": "Portada-style App Store and Play screenshot renderer. Brand content lives in store/brand.yml.",
+  "scripts": {
+    "render": "node render.js",
+    "capture": "node capture.js",
+    "capture:ipad": "node capture_ipad.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}

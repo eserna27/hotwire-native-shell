@@ -2,6 +2,38 @@
 
 The shell is one Android project. Each client is a flavor plus a JSON document. itsjustmy is the pattern. Nagama and Jazz Controls should follow it. They do not need a fork.
 
+## 0. Questionnaire
+
+`bin/new-app` asks for the values this page used to be filled by hand, then writes them.
+
+```sh
+bin/new-app
+```
+
+It asks for the display name, slug, bundle id / `applicationId`, production and dev base URLs, brand colors, an icon (image file or favicon URL) and splash background, the start path, cold-start tabs, which bridges are on, and push. When push is yes it requires a `google-services.json` path and turns on the iOS Push Notifications capability (`aps-environment`).
+
+Agents and CI use the same generator without prompts:
+
+```sh
+bin/new-app --file flavors/itsjustmy/app.yml --config-only
+bin/new-app --file path/to/app.yml
+```
+
+Icon rasterizing needs Pillow (`python3-pil`) and, for SVG or a favicon SVG, `rsvg-convert` (`librsvg2-bin`). The script itself needs PyYAML (`python3-yaml`).
+
+`--config-only` prints `native/config.json` and does not write. A full run writes:
+
+- `flavors/<slug>/` (`assets/native/config.json`, `app.yml`, README)
+- the Android product flavor, launcher, and splash
+- the single iOS target (bundle id, display name, `native` folder, splash icon and color)
+- `store/brand.yml` for [store screenshots](STORE_SCREENSHOTS.md)
+
+It finishes by printing the manual steps it cannot do: Xcode signing, uploading an APNs key to the Rails app, and creating the Firebase project. The copied `google-services.json` is gitignored. The skeleton still does not apply the Google services plugin or subscribe to topics.
+
+`bin/new-app --file flavors/itsjustmy/app.yml --config-only` matches [`flavors/itsjustmy/assets/native/config.json`](../flavors/itsjustmy/assets/native/config.json). Applying that file is a separate choice: push is on, so it asks for `google-services.json` and adds the iOS entitlement. The committed pilot target has neither. `python3 script/check_contract.py` still expects that pilot. `python3 script/check_contract.py --flavor <slug>` checks a generated flavor's JSON shape and Gradle wiring.
+
+The sections below are what the command does, and the way to do it by hand.
+
 ## 1. Copy the flavor
 
 ```sh
@@ -81,4 +113,4 @@ To point the same target at another client:
 3. Replace `SplashIcon.imageset/splash.png` with that client's favicon and set `SplashBackground.colorset`. See [Splash](#splash).
 4. That client's Rails app must serve `GET /native/config` and `GET /configurations/ios_v1.json`.
 
-Do not add a second JSON contract or a push entitlement. Open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. See [ios/README.md](../ios/README.md).
+Do not add a second JSON contract. `bin/new-app` writes the push entitlement only when the answers turn push on. The itsjustmy pilot target does not have one. Open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. See [ios/README.md](../ios/README.md).

@@ -45,4 +45,4 @@ The Android emulator still uses `http://10.0.2.2:9292`. See [android/README.md](
 
 ## Another client
 
-v1 is this one target. Swap the bundle id, the display name, and the `native` folder reference. Steps are in [docs/NEW_APP.md](../docs/NEW_APP.md).
+v1 is this one target. `bin/new-app` swaps the bundle id, the display name, the `native` folder reference, and the splash. It adds the Push Notifications entitlement only when that client's answers turn push on. Steps are in [docs/NEW_APP.md](../docs/NEW_APP.md).

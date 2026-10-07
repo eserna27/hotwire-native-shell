@@ -1,4 +1,6 @@
 .DS_Store
+__pycache__/
+*.pyc
 *.jks
 *.keystore
 google-services.json
@@ -21,6 +23,13 @@ android/local.properties
 android/.idea/
 android/keystore.properties
 android/**/build/
+
+store/screenshots/
+store/captures/*
+!store/captures/.gitkeep
+store/assets/*.png
+tools/store-screenshots/node_modules/
+tools/store-screenshots/template/brand.runtime.js
 
 ios/**/xcuserdata/
 ios/**/*.xcuserstate

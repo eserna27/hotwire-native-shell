@@ -16,7 +16,7 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 - Invent a different JSON contract, rename existing fields, or add a second config endpoint. A new key is allowed only when an already-shipped shell can ignore it. Field rules live in [docs/CONTRACT.md](docs/CONTRACT.md).
 - Commit secrets: keystores (`*.jks`, `*.keystore`), `keystore.properties`, `google-services.json`, API keys, signing passwords, `.p12` files, or provisioning profiles. Those paths are gitignored.
 - Add Firebase Cloud Messaging, the Google services plugin, or `google-services.json` unless the task explicitly asks for FCM on a named client.
-- Add an APNs entitlement, a push capability, or a signing identity. The Xcode project is [ios/HotwireNativeShell.xcodeproj](ios/HotwireNativeShell.xcodeproj). It has no push entitlement on purpose.
+- Add an APNs entitlement, a push capability, or a signing identity by hand. The committed Xcode project has no push entitlement on purpose. [bin/new-app](bin/new-app) writes the Push Notifications entitlement only when that client's answers turn push on, and only on the single iOS target. Do not leave that entitlement on the itsjustmy pilot.
 
 ## Reading order
 
@@ -29,6 +29,8 @@ MIT licensed, for our own apps (itsjustmy, Nagama, Jazz). It is not a product to
 7. [ios/README.md](ios/README.md) — Xcode scheme, simulator build, localhost cleartext.
 8. [rails-example/](rails-example/README.md) — sketch that serves the contract without a full Rails app.
 9. [rails/README.md](rails/README.md) — `hotwire_native_shell-rails`, the gem a real Rails app installs.
+10. [bin/new-app](bin/new-app) — questionnaire (or `app.yml`) that writes a flavor. See [docs/NEW_APP.md](docs/NEW_APP.md).
+11. [docs/STORE_SCREENSHOTS.md](docs/STORE_SCREENSHOTS.md) — App Store and Play posters from [store/brand.yml](store/brand.yml).
 
 Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -74,7 +76,9 @@ xcodebuild \
 
 ## Adding a new app
 
-Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
+Prefer [bin/new-app](bin/new-app) (`--file app.yml` for a non-interactive run). It follows the checklist below and prints the manual steps it cannot do (Xcode signing, the APNs key in the Rails app, the Firebase project). Hand steps, if you are not using the command, are in [docs/NEW_APP.md](docs/NEW_APP.md).
+
+Checklist:
 
 1. Copy `flavors/itsjustmy` to `flavors/<name>`.
 2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path`, optional cold-start `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
@@ -87,7 +91,7 @@ Follow [docs/NEW_APP.md](docs/NEW_APP.md). Checklist:
 ## Rails contract reminders
 
 - Path configuration is a separate document from `/native/config`. Android requests `GET /configurations/android_v1.json`. iOS requests `GET /configurations/ios_v1.json`. Bundled copies: `android/app/src/main/assets/json/path-configuration.json` and `ios/HotwireNativeShell/path-configuration.json`. A 404 on the remote URL is acceptable; the app keeps the bundled rules. iOS ignores the Android `uri` property.
-- Bottom tabs come from the always-registered `tabs` bridge. Rails declares them in page markup (id, title, icon, path, and which one is active). `tabs` on `/native/config` is only the optional list shown before the first page connects. Two or more usable items show a native bar (one navigator per tab). Fewer than two keeps the single navigator. The cap is five. Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md). The controller and markup are in [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
+- Bottom tabs come from the always-registered `tabs` bridge. Rails declares them in page markup (id, title, icon, path, and which one is active). `tabs` on `/native/config` is only the optional list shown before the first page connects. Two or more usable items show a native bar (one navigator per tab). Fewer than two keeps the single navigator. The cap is five. Field rules are in [docs/CONTRACT.md](docs/CONTRACT.md). The controller and markup are in [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md). Android must keep `R.id.main_nav_host` in `navigatorConfigurations()` across recreate, including when the bottom bar is showing.
 - The bridge catalog is fixed in the shell and toggled by JSON. Keys: `notification_token`, `share`, `haptic`, `camera`, `biometric`, `clipboard`, `file_download`. The Stimulus component name is not always the JSON key (`notification-token`, `file-download`). `menu`, `overflow-menu`, and `tabs` are always registered and are not JSON keys. See [docs/BRIDGES.md](docs/BRIDGES.md) and [docs/NATIVE_UI.md](docs/NATIVE_UI.md).
 - Until a real push provider is added for that client, `notification-token` replies with `{ "token": "placeholder-not-a-device-token", "provider": "placeholder" }` on Android and iOS. Rails must ignore that string. `push.enabled` and `push.topics` are recorded at startup and are not subscribed. There is no FCM dependency and no APNs entitlement.
 
@@ -98,6 +102,6 @@ An agent task on this repo is done when:
 - The flavor you touched builds (`:app:assemble<Flavor>Debug`).
 - That flavor's bundled `native/config.json` matches the intended Rails origin (`base_url`, start path or tabs, bridge flags).
 - iOS still opens `ios/HotwireNativeShell.xcodeproj` on the `HotwireNativeShell` scheme. On a Mac, the `xcodebuild` command in [ios/README.md](ios/README.md) is the build. On Linux, `python3 script/check_contract.py` is the stand-in: it checks the bundle id, the flavor folder reference, and the bridge names. Do not claim `xcodebuild` passed if it did not run.
-- No secrets are in git (keystore, `keystore.properties`, `google-services.json`, `.p12`, provisioning profile, push entitlement).
+- No secrets are in git (keystore, `keystore.properties`, `google-services.json`, `.p12`, provisioning profile). The committed itsjustmy target has no push entitlement.
 - `cd rails && bundle exec rake test` passes for the Rails gem.
 - Links in [README.md](README.md), this file, and `docs/` still point at files that exist.

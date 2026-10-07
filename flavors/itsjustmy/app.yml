@@ -1,0 +1,54 @@
+# Answers that reproduce flavors/itsjustmy/assets/native/config.json.
+# Check: bin/new-app --file flavors/itsjustmy/app.yml --config-only
+# Applying this file retargets the iOS app and needs push.google_services_json.
+
+display_name: itsjustmy.blog
+slug: itsjustmy
+application_id: blog.itsjustmy.app
+base_url: https://itsjustmy.blog
+dev_base_url: http://localhost:9292
+android_dev_base_url: http://10.0.2.2:9292
+colors:
+  primary: "#6EE7B7"
+  secondary: "#3B82F6"
+  ink: "#0F172A"
+  paper: "#F6F2E8"
+  splash_background: "#FFFFFF"
+icon: store/brand/icon.svg
+start_path: /
+tabs:
+  - id: home
+    title: Inicio
+    titles:
+      es: Inicio
+      en: Home
+    path: /
+    icon: home
+  - id: about
+    title: Acerca
+    titles:
+      es: Acerca
+      en: About
+    path: /acerca
+    icon: info
+    sf_symbol: info.circle
+  - id: sign_in
+    title: Entrar
+    titles:
+      es: Entrar
+      en: Sign in
+    path: /users/sign_in
+    icon: profile
+    android_icon: ic_tab_profile
+bridges:
+  notification_token: true
+  share: true
+  haptic: true
+  camera: false
+  biometric: false
+  clipboard: false
+  file_download: false
+push:
+  enabled: true
+  topics:
+    - posts
