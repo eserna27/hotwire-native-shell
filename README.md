@@ -125,9 +125,105 @@ xcodebuild \
 
 That command needs Xcode. It does not run on Linux. Details, the simulator cleartext exception, and the missing signing secrets are in [ios/README.md](ios/README.md).
 
-## Rails
+## Using the Rails gem
 
-Install [`hotwire_native_shell-rails`](rails/README.md) in the Rails app (`rails g hotwire_native_shell:install`). It serves `GET /native/config`, both path-configuration URLs, the bridge helpers, and device-token push. The sketch in [rails-example/](rails-example/README.md) is the same contract without a full Rails app, for a local curl check. Until `https://itsjustmy.blog/native/config` exists, the installed app uses the JSON bundled with it.
+[`hotwire_native_shell-rails`](rails/README.md) is the Rails side of this shell. It lives in [`rails/`](rails/) of this repository and is not published to RubyGems. A Rails app that installs it serves `GET /native/config`, both path-configuration URLs, the bridge helpers, and device-token push. The sketch in [rails-example/](rails-example/README.md) is the same contract without a full Rails app, for a local curl check. Until `https://itsjustmy.blog/native/config` exists, the installed shell uses the JSON bundled with it. Field-by-field details stay in [rails/README.md](rails/README.md).
+
+In the Rails app's `Gemfile`, point Bundler at this repo. The gemspec is `rails/hotwire_native_shell-rails.gemspec`, so the glob is required:
+
+```ruby
+gem "hotwire_native_shell-rails", github: "eserna27/hotwire-native-shell", glob: "rails/*.gemspec"
+```
+
+While developing against a local checkout of this repo, use a path instead:
+
+```ruby
+gem "hotwire_native_shell-rails", path: "../hotwire-native-shell/rails"
+```
+
+Then:
+
+```sh
+bundle install
+bin/rails generate hotwire_native_shell:install
+bin/rails db:migrate
+```
+
+The generator writes the initializer, the routes, the Stimulus bridge controllers, a tabs partial, and the `hotwire_native_shell_device_tokens` migration.
+
+`config/initializers/hotwire_native_shell.rb` is the config. Cold start cannot see a session, so `GET /native/config` publishes the signed-out start path and the signed-out tabs. Signed-in tabs arrive later from the page.
+
+```ruby
+HotwireNativeShell.configure do |config|
+  config.name = "itsjustmy"
+  config.base_url = "https://itsjustmy.blog"
+  config.title_suffix = "itsjustmy.blog"
+  config.signed_out_start_path = "/users/sign_in"
+  config.signed_in_start_path = "/dashboard"
+
+  config.tab :home, auth: :signed_in, title: "Inicio",
+    titles: { es: "Inicio", en: "Home" }, path: "/dashboard", icon: "home"
+  config.tab :posts, auth: :signed_in, title: "Posts",
+    path: "/dashboard/posts", icon: "posts"
+  # auth: :signed_out tabs are also the cold-start list. auth: :both copies a tab into both.
+
+  config.menu_item "Sign out", "/users/sign_out", method: :delete, auth: :signed_in
+end
+```
+
+In the layout, render tabs on every native page, including an empty list (an omitted list leaves the previous bar up), and hide the website navbar inside the app:
+
+```erb
+<%= stylesheet_link_tag "hotwire_native_shell" %>
+<%= render "shared/native_tabs" %>
+<% if native_render_web_nav? %>
+  <nav class="navbar"><%# the site's HTML navbar %></nav>
+<% end %>
+<title><%= native_document_title(page_title) %></title>
+```
+
+`native_share` and `native_menu` stay on the pages that need them. Do not add those bridges in the layout.
+
+```erb
+<%# posts/show %>
+<%= native_share(url: post_url(@post), title: @post.title) %>
+
+<%# a page that should show the native menu %>
+<%= native_menu %>
+```
+
+Helpers emit nothing unless the user agent contains `Hotwire Native`, so the website is unchanged.
+
+Include the concern so a signed-out native visit goes to the sign-in path, and a signed-in visit to `/` goes to the signed-in start path. The website is not redirected.
+
+```ruby
+class ApplicationController < ActionController::Base
+  include HotwireNativeShell::NativeEntry
+end
+```
+
+Push credentials are never committed. Put them in Rails credentials under `hotwire_native_shell`, or in `HOTWIRE_NATIVE_SHELL_*` env vars (env wins when set). APNs token auth needs the `.p8` private key, Key ID, Team ID, and the app's bundle id. FCM HTTP v1 needs the service-account JSON and the project id. `google-services.json` stays on the Android build. It is not the server credential. The full key list is in [rails/README.md](rails/README.md#what-to-upload).
+
+```yaml
+hotwire_native_shell:
+  apns:
+    key_id: "ABC123DEFG"
+    team_id: "TEAMID1234"
+    bundle_id: "blog.itsjustmy.app"
+    private_key: |   # contents of AuthKey_ABC123DEFG.p8
+      -----BEGIN PRIVATE KEY-----
+      ...
+      -----END PRIVATE KEY-----
+  fcm:
+    project_id: "itsjustmy"
+    service_account_json: |   # the Firebase service account file
+      { "type": "service_account", "project_id": "itsjustmy", "private_key": "...", "client_email": "..." }
+```
+
+App Store reminders, optional until you ship:
+
+- Guideline 4.8. `native_oauth_allowed?` is false inside the app until `config.sign_in_with_apple = true`. Wrap Google, GitHub, and similar buttons in that helper so the website still shows them.
+- Guideline 5.1.1(v). Set `config.account_deletion_path` to a route you own, then call `native_account_deletion_link`. The helper renders nothing until that path is set. The gem does not delete accounts.
 
 ## Another client
 
