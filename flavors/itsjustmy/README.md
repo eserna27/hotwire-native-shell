@@ -14,3 +14,5 @@ Pilot flavor for [itsjustmy.blog](https://itsjustmy.blog).
 The Android `itsjustmy` source set packages `assets/` into the APK. The iOS target references `assets/native` as a folder, so the same JSON is the offline copy of `GET /native/config` on both platforms. The launcher icons are the site favicon (`/icon.svg` on itsjustmy.blog). The splash screen uses that same artwork on a white background.
 
 `push.topics` lists `posts`. Both shells record that. Neither subscribes to Firebase or APNs yet.
+
+The same answers live in [`app.yml`](app.yml). `bin/new-app --file flavors/itsjustmy/app.yml --config-only` prints this contract. Applying that file needs a `google-services.json` path because push is on, and it retargets the single iOS app.

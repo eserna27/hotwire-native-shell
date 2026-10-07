@@ -1,0 +1,352 @@
+# itsjustmy.blog — Portada store screenshots.
+# Copy, colors, fonts, the logo, capture URLs, and drop-in filenames live here.
+# The renderer in tools/store-screenshots/ reads this file and nothing client-specific.
+# See docs/STORE_SCREENSHOTS.md.
+
+name: itsjustmy
+display_name: itsjustmy.blog
+logo: store/brand/icon.svg
+captures_dir: store/captures
+assets_dir: store/assets
+output_dir: store/screenshots
+
+colors:
+  ink: "#0F172A"
+  mint: "#6EE7B7"
+  blue: "#2F6BEA"
+  paper: "#F6F2E8"
+
+fonts:
+  display: Bodoni Moda
+  sans: Archivo
+  mono: IBM Plex Mono
+  ui: Inter
+
+status_time: "9:41"
+feature_screen: web_blog_noapple.png
+feature_nav_title: Emmanuel Serna Sandoval
+
+# Logged-in screens the capture scripts cannot reach. Drop PNGs into captures_dir.
+# iPhone files are 1170x2532 (390x844 @3x). iPad files are 2064x2752 (1032x1376 @2x).
+# Leave the status bar and the native nav bar out of the PNG; the frame draws both.
+drop_ins:
+  - file: app_editor.png
+    device: iphone
+    width: 1170
+    height: 2532
+    note: Editor with a post being written.
+  - file: ipad_editor.png
+    device: ipad
+    width: 2064
+    height: 2752
+    note: Same editor on the iPad 13" canvas.
+  - file: app_dashboard.png
+    device: iphone
+    width: 1170
+    height: 2532
+    note: Dashboard. If this file is missing, app_posts.png is used.
+  - file: app_posts.png
+    device: iphone
+    width: 1170
+    height: 2532
+    note: Post list fallback for the dashboard slide.
+  - file: ipad_dashboard.png
+    device: ipad
+    width: 2064
+    height: 2752
+    note: iPad dashboard. If this file is missing, ipad_posts.png is used.
+  - file: ipad_posts.png
+    device: ipad
+    width: 2064
+    height: 2752
+    note: iPad post list fallback for the dashboard slide.
+
+locales:
+  es:
+    lang: es
+    folio: ["itsjustmy.blog", "Edición de bolsillo", "Nº 01", "Otoño 2026"]
+    pending: Captura pendiente
+    feature:
+      headline: "Tu blog,<br><em>en tu bolsillo.</em>"
+      tag: Un hogar para tus palabras
+    slides:
+      - id: 01-blog
+        phone: l
+        theme: ink
+        kicker: Portada
+        headline: "Tu blog,<br><em>en tu bolsillo.</em>"
+        sub: Tu perfil, tus categorías y todo lo que publicas, a un toque.
+        badge: "Registro<br>gratis"
+        screen:
+          ipad: [ipad_blog.png]
+          srcs: [web_blog_noapple.png]
+          nav:
+            title: Emmanuel Serna Sandoval
+      - id: 02-editor
+        phone: l
+        theme: paper
+        kicker: Editor
+        headline: "Escribe<br><em>donde estés.</em>"
+        sub: Escribe y guarda borradores desde el teléfono, cuando llegue la idea.
+        screen:
+          ipad: [ipad_editor.png]
+          srcs: [app_editor.png]
+          label: editor
+          nav:
+            title: Nuevo post
+            back: true
+        slip:
+          k: Incluido
+          t: "Borradores<br><em>ilimitados</em>"
+      - id: 03-post
+        theme: mint
+        kicker: Sin ruido
+        headline: "Publica<br><em>sin ruido.</em>"
+        sub: Sin anuncios ni algoritmos. Solo tus palabras y quien quiera leerlas.
+        quote: Hay finales que quedan en la memoria por la espectacularidad en la cancha. Esta no.
+        cite: Emmanuel Serna · Deportes
+        screen:
+          ipad: [ipad_post_espana.png]
+          ipadScroll: 860
+          srcs: [web_post_espana.png]
+          nav:
+            title: España Campeón y el adiós de Messi
+            back: true
+          scroll: 760
+      - id: 04-dashboard
+        phone: l
+        theme: ink
+        kicker: Panel
+        headline: "Todo tu blog,<br><em>a la mano.</em>"
+        sub: Tus borradores y tus publicaciones, en un solo lugar.
+        screen:
+          ipad: [ipad_dashboard.png, ipad_posts.png]
+          srcs: [app_dashboard.png, app_posts.png]
+          label: panel / posts
+          nav:
+            title: Panel
+        slip:
+          k: Estado
+          rows:
+            - [on, Publicado]
+            - [off, Borrador]
+      - id: 05-categories
+        theme: paper
+        kicker: Índice
+        headline: "Tus temas,<br><em>en su lugar.</em>"
+        sub: Agrupa tus posts por categoría y cada lector encuentra lo suyo.
+        index:
+          title: Índice
+          items: [Deportes, Tecnología, Código, Pensamientos]
+          active: Código
+        screen:
+          ipad: [ipad_cat_codigo.png]
+          srcs: [web_cat_codigo.png]
+          nav:
+            title: Código
+            back: true
+      - id: 06-username
+        theme: blue
+        kicker: Clasificados
+        headline: "Tu nombre<br><em>al frente.</em>"
+        sub: "Elige tu usuario: tu blog vive en tu propio subdominio."
+        name: lacronista
+        domain: .itsjustmy.blog
+        popout: crop_username_clean.png
+        popoutIpad: crop_username_ipad.png
+        screen:
+          ipad: [ipad_sign_up.png]
+          srcs: [sign_up_clean.png]
+  en:
+    lang: en
+    folio: ["itsjustmy.blog", "Pocket edition", "No. 01", "Fall 2026"]
+    pending: Screenshot pending
+    feature:
+      headline: "Your blog,<br><em>in your pocket.</em>"
+      tag: A home for your words
+    slides:
+      - id: 01-blog
+        phone: l
+        theme: ink
+        kicker: Cover
+        headline: "Your blog,<br><em>in your pocket.</em>"
+        sub: Your profile, your categories and everything you publish, one tap away.
+        badge: "Free<br>to join"
+        screen:
+          ipad: [ipad_blog.png]
+          srcs: [web_blog_noapple.png]
+          nav:
+            title: Emmanuel Serna Sandoval
+      - id: 02-editor
+        phone: l
+        theme: paper
+        kicker: Editor
+        headline: "Write<br><em>anywhere.</em>"
+        sub: Write and save drafts from your phone, whenever the idea hits.
+        screen:
+          ipad: [ipad_editor.png]
+          srcs: [app_editor.png]
+          label: editor
+          nav:
+            title: Nuevo post
+            back: true
+        slip:
+          k: Included
+          t: "Unlimited<br><em>drafts</em>"
+      - id: 03-post
+        theme: mint
+        kicker: No noise
+        headline: "Publish<br><em>in peace.</em>"
+        sub: No ads, no algorithm. Just your words and the people who want to read them.
+        quote: Some finals are remembered for the spectacle on the pitch. Not this one.
+        cite: Emmanuel Serna · Sports
+        screen:
+          ipad: [ipad_post_espana.png]
+          ipadScroll: 860
+          srcs: [web_post_espana.png]
+          nav:
+            title: España Campeón y el adiós de Messi
+            back: true
+          scroll: 760
+      - id: 04-dashboard
+        phone: l
+        theme: ink
+        kicker: Dashboard
+        headline: "Your blog,<br><em>at a glance.</em>"
+        sub: Your drafts and published posts, all in one place.
+        screen:
+          ipad: [ipad_dashboard.png, ipad_posts.png]
+          srcs: [app_dashboard.png, app_posts.png]
+          label: dashboard / posts
+          nav:
+            title: Panel
+        slip:
+          k: Status
+          rows:
+            - [on, Published]
+            - [off, Draft]
+      - id: 05-categories
+        theme: paper
+        kicker: Index
+        headline: "Every topic<br><em>in its place.</em>"
+        sub: Group posts by category so every reader finds their thing.
+        index:
+          title: Index
+          items: [Deportes, Tecnología, Código, Pensamientos]
+          active: Código
+        screen:
+          ipad: [ipad_cat_codigo.png]
+          srcs: [web_cat_codigo.png]
+          nav:
+            title: Código
+            back: true
+      - id: 06-username
+        theme: blue
+        kicker: Classifieds
+        headline: "Your name<br><em>up front.</em>"
+        sub: "Pick a username: your blog lives on its own subdomain."
+        name: lacronista
+        domain: .itsjustmy.blog
+        popout: crop_username_clean.png
+        popoutIpad: crop_username_ipad.png
+        screen:
+          ipad: [ipad_sign_up.png]
+          srcs: [sign_up_clean.png]
+
+# Public pages the capture scripts can open. Drop-ins above are not listed here.
+captures:
+  - file: web_blog_noapple.png
+    url: https://eserna27.itsjustmy.blog/
+    device: iphone
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - remove_link_card:
+          href_contains: /posts/surprise-and-shine
+          group_href_contains: /posts/
+      - wait_ms: 400
+  - file: web_post_espana.png
+    url: https://eserna27.itsjustmy.blog/posts/espana-campeon-y-el-adios-de-messi
+    device: iphone
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - wait_ms: 300
+  - file: web_cat_codigo.png
+    url: https://eserna27.itsjustmy.blog/categories/codigo
+    device: iphone
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - wait_ms: 300
+  - file: sign_up_clean.png
+    url: https://itsjustmy.blog/users/sign_up
+    device: iphone
+    user_agent: native
+    locale: es-MX
+    steps:
+      - click: input[placeholder="tu usuario"]
+      - type:
+          text: lacronista
+          delay: 50
+      - wait_ms: 2500
+      - blur: true
+      - hide:
+          - ".cf-turnstile"
+          - "[data-controller~=\"turnstile\"]"
+          - "[class*=\"turnstile\"]"
+      - wait_ms: 600
+      - clip_around_input:
+          input: input[placeholder="tu usuario"]
+          extra_text: Libre
+          out: crop_username_clean.png
+  - file: ipad_blog.png
+    url: https://eserna27.itsjustmy.blog/
+    device: ipad
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - remove_link_card:
+          href_contains: /posts/surprise-and-shine
+          group_href_contains: /posts/
+      - wait_ms: 400
+  - file: ipad_post_espana.png
+    url: https://eserna27.itsjustmy.blog/posts/espana-campeon-y-el-adios-de-messi
+    device: ipad
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - wait_ms: 300
+  - file: ipad_cat_codigo.png
+    url: https://eserna27.itsjustmy.blog/categories/codigo
+    device: ipad
+    user_agent: safari
+    locale: es-MX
+    steps:
+      - add_class: hotwire-native
+      - wait_ms: 300
+  - file: ipad_sign_up.png
+    url: https://itsjustmy.blog/users/sign_up
+    device: ipad
+    user_agent: native
+    locale: es-MX
+    steps:
+      - click: input[placeholder="tu usuario"]
+      - type:
+          text: lacronista
+          delay: 50
+      - wait_ms: 2500
+      - blur: true
+      - hide:
+          - ".cf-turnstile"
+          - "[data-controller~=\"turnstile\"]"
+      - wait_ms: 500
+      - clip_around_input:
+          input: input[placeholder="tu usuario"]
+          extra_text: Libre
+          out: crop_username_ipad.png

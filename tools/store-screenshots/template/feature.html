@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Google Play feature graphic 1024x500. Brand from brand.runtime.js. ?lang= -->
+<link rel="stylesheet" href="../shared/fonts/fonts.css">
+<link rel="stylesheet" href="../shared/phone.css">
+<script src="../shared/phone.js"></script>
+<script src="brand.runtime.js"></script>
+<script>
+const Q=new URLSearchParams(location.search); window.LANG=Q.get('lang')||'es';
+if(!window.BRAND) throw new Error('brand.runtime.js missing — run tools/store-screenshots/render.js');
+(function(){
+  const c=window.BRAND.colors||{}, f=window.BRAND.fonts||{}, root=document.documentElement;
+  if(c.ink) root.style.setProperty('--ink', c.ink);
+  if(c.mint) root.style.setProperty('--mint', c.mint);
+  if(c.blue) root.style.setProperty('--blue', c.blue);
+  if(c.paper) root.style.setProperty('--paper', c.paper);
+  if(f.display) root.style.setProperty('--font-display', "'"+f.display+"'");
+  if(f.sans) root.style.setProperty('--font-sans', "'"+f.sans+"'");
+  if(f.mono) root.style.setProperty('--font-mono', "'"+f.mono+"'");
+  if(f.ui) root.style.setProperty('--font-ui', "'"+f.ui+"'");
+})();
+</script>
+<style>
+:root{--ink:#0F172A;--mint:#6EE7B7;--blue:#2F6BEA;--paper:#F6F2E8;--font-display:'Bodoni Moda';--font-sans:'Archivo';--font-mono:'IBM Plex Mono';--font-ui:'Inter'}
+*{box-sizing:border-box;margin:0}
+body{width:1024px;height:500px;overflow:hidden;background:var(--ink);position:relative}
+.cols{position:absolute;top:0;bottom:0;left:56px;right:56px;display:grid;grid-template-columns:repeat(4,1fr)}
+.cols i{border-left:1px solid rgba(246,242,232,.14)}.cols i:last-child{border-right:1px solid rgba(246,242,232,.14)}
+.folio{position:absolute;left:0;top:26px;white-space:nowrap;font:600 13px/1 var(--font-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--paper);opacity:.75}
+.folio span{padding:0 16px}.folio b{display:inline-block;width:90px;height:1.5px;background:currentColor;vertical-align:middle}
+.brand{position:absolute;left:56px;top:88px;display:flex;align-items:center;gap:14px;font:800 26px/1 var(--font-sans);font-stretch:80%;color:var(--paper);letter-spacing:.01em}
+.brand img{width:44px;height:44px}
+h1{position:absolute;left:56px;top:160px;font-family:var(--font-display);font-weight:560;font-variation-settings:'opsz' 30;font-size:86px;line-height:.92;letter-spacing:-.03em;color:var(--paper);white-space:nowrap}
+h1 em{font-style:italic;font-weight:620;color:var(--mint)}
+.tag{position:absolute;left:56px;top:380px;font:700 20px/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mint)}
+.slab{position:absolute;right:0;top:300px;width:420px;height:200px;background:var(--mint);border-top:7px solid var(--paper)}
+.phone{z-index:3}
+</style></head><body>
+<div class="cols"><i></i><i></i><i></i><i></i></div>
+<div class="folio" id="folio"></div><div class="slab"></div>
+<div class="brand"><img id="logo" alt=""><span id="name"></span></div>
+<h1 id="h"></h1><div class="tag" id="t"></div>
+<script>
+const B=window.BRAND;
+const C=B.locales[LANG];
+if(!C) throw new Error('brand.yml has no locale '+LANG);
+let parts=''; for(let r=0;r<3;r++) parts+=(C.folio||[]).map(x=>`<span>${x}</span><b></b>`).join('');
+document.getElementById('folio').innerHTML=parts;
+document.getElementById('h').innerHTML=(C.feature&&C.feature.headline)||'';
+document.getElementById('t').textContent=(C.feature&&C.feature.tag)||'';
+document.getElementById('logo').src=B.logo_uri||'';
+document.getElementById('name').textContent=B.display_name||'';
+const CAP=(B.captures_uri||'').replace(/\/$/,'');
+const screen=B.feature_screen? CAP+'/'+String(B.feature_screen).split('/').map(encodeURIComponent).join('/') : '';
+if(screen){
+  document.body.insertAdjacentHTML('beforeend', phone({
+    src: screen,
+    pw: 330,
+    frame: '#E9E4D8',
+    time: B.status_time||'9:41',
+    nav: B.feature_nav_title? {title: B.feature_nav_title} : null,
+    style: 'left:640px;top:70px'
+  }));
+}
+(async()=>{
+  await document.fonts.ready;
+  const h=document.getElementById('h');
+  let s=86;
+  while(h.scrollWidth>560 && s>50){ s-=2; h.style.fontSize=s+'px'; }
+  await Promise.all([...document.images].map(i=>i.complete?0:new Promise(r=>{i.onload=i.onerror=r})));
+  window.READY=true;
+})();
+</script></body></html>

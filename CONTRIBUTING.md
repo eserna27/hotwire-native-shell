@@ -9,4 +9,4 @@ This is a small MIT shell for our own Rails apps. Issues and pull requests are w
 - iOS: open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. The `xcodebuild` line is in `ios/README.md`. It needs a Mac.
 - The JSON shape, and the iOS wiring to it, can be checked without the Android SDK or Xcode: `python3 script/check_contract.py`.
 
-itsjustmy is the pilot flavor. A new client is a flavor, not a fork. See `docs/NEW_APP.md`.
+itsjustmy is the pilot flavor. A new client is a flavor, not a fork. `bin/new-app` writes one from a questionnaire or an `app.yml` file. See `docs/NEW_APP.md`. Store posters are `docs/STORE_SCREENSHOTS.md`.

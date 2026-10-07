@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""Check the itsjustmy contract file and the files that must keep pointing at it."""
+"""Check the itsjustmy contract file and the files that must keep pointing at it.
 
+`--flavor <slug>` checks that flavor's bundled JSON shape and Gradle wiring.
+It does not require the single iOS target to point at that flavor.
+"""
+
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -25,7 +30,64 @@ def fail(message: str) -> None:
     sys.exit(1)
 
 
+def check_generated_flavor(slug: str) -> None:
+    """Shape and Gradle wiring for a flavor produced by bin/new-app."""
+    if not slug or "/" in slug or slug.startswith("."):
+        fail("flavor name")
+    config_path = ROOT / "flavors" / slug / "assets" / "native" / "config.json"
+    if not config_path.is_file():
+        fail(f"missing {config_path.relative_to(ROOT)}")
+    config = json.loads(config_path.read_text())
+    if config.get("name") != slug:
+        fail("name")
+    base_url = config.get("base_url")
+    if not isinstance(base_url, str) or not base_url.startswith(("https://", "http://")):
+        fail("base_url")
+    if "start_path" in config and (not isinstance(config["start_path"], str) or not config["start_path"].startswith("/")):
+        fail("start_path")
+    tabs = config.get("tabs", [])
+    if not isinstance(tabs, list) or len(tabs) > 5:
+        fail("tabs")
+    seen = set()
+    for tab in tabs:
+        if not isinstance(tab, dict):
+            fail("tab")
+        tab_id = tab.get("id")
+        if not isinstance(tab_id, str) or tab_id in seen:
+            fail("tab id")
+        seen.add(tab_id)
+        if not isinstance(tab.get("title"), str) and not isinstance(tab.get("titles"), dict):
+            fail("tab title")
+        if "path" not in tab and "url" not in tab:
+            fail("tab path")
+    bridges = config.get("bridges")
+    if not isinstance(bridges, dict) or list(bridges) != EXPECTED_BRIDGE_KEYS:
+        fail(f"bridge keys {list(bridges) if isinstance(bridges, dict) else bridges}")
+    for key, value in bridges.items():
+        if not isinstance(value, bool):
+            fail(f"{key} must be a boolean")
+    push = config.get("push")
+    if not isinstance(push, dict) or not isinstance(push.get("enabled"), bool):
+        fail("push")
+    topics = push.get("topics", [])
+    if not isinstance(topics, list) or not all(isinstance(topic, str) for topic in topics):
+        fail("push topics")
+    gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text()
+    if f'create("{slug}")' not in gradle:
+        fail("gradle flavor")
+    if f"../flavors/{slug}/assets" not in gradle:
+        fail("flavor assets are not wired into the Android source set")
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Check bundled native config wiring.")
+    parser.add_argument("--flavor", help="Check this flavor's JSON shape and Gradle wiring, then exit.")
+    args = parser.parse_args()
+    if args.flavor:
+        check_generated_flavor(args.flavor)
+        print(f"contract check ok ({args.flavor})")
+        return
+
     config = json.loads(CONFIG_PATH.read_text())
     if config["name"] != "itsjustmy":
         fail("name")
