@@ -134,7 +134,7 @@ Hide the HTML nav once the component is active. In a browser the same links stay
 }
 ```
 
-With two or more usable tabs, each tab has its own navigator, so a push on Inicio does not change the stack on Posts. Sending the same list again does not rebuild those navigators. Zero or one usable tab leaves the single navigator and draws no bar. An empty array, or an array whose entries are all unusable, does that on purpose. A bad entry is skipped. The shell keeps at most five.
+With two or more usable tabs, each tab has its own navigator, so a push on Inicio does not change the stack on Posts. Sending the same list again does not rebuild those navigators. Zero or one usable tab leaves the single navigator and draws no bar. An empty array, or an array whose entries are all unusable, does that on purpose. A bad entry is skipped. The shell keeps at most five. Android must keep `main_nav_host` in `navigatorConfigurations()` across recreate, including when the bottom bar is showing and when `tabs: []` returns to the single navigator.
 
 ### Login, logout, and a cached config
 

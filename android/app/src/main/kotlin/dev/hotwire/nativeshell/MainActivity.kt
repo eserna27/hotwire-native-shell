@@ -19,6 +19,7 @@ import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
 import dev.hotwire.navigation.tabs.navigatorConfigurations
 import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.nativeshell.config.NativeConfig
+import dev.hotwire.nativeshell.config.NavigatorHostPlan
 import dev.hotwire.nativeshell.config.PresentedTabs
 import dev.hotwire.nativeshell.config.ShellTabs
 import dev.hotwire.nativeshell.config.TabChromePlan
@@ -122,21 +123,27 @@ class MainActivity : HotwireActivity() {
         window?.decorView?.post(hop) ?: hop.run()
     }
 
+    /**
+     * `main_nav_host` stays in this list across recreate, including when the
+     * bottom bar is showing. Hotwire restores the saved fragment for that id
+     * and throws if it is missing. The tab hosts stay too, so `tabs: []` can
+     * restore them. The first entry is the host in the layout this
+     * presentation inflates. `singleRoot` is the logout page; a signed-in
+     * list has none, and the single navigator then opens the first tab.
+     */
     override fun navigatorConfigurations(): List<NavigatorConfiguration> {
         val shellConfig = ShellApplication.current
         val presented = TabChrome.presented(shellConfig, deviceLanguage())
-        if (presented.resolution.tabs.size < 2) {
-            return listOf(
-                NavigatorConfiguration(
-                    name = "main",
-                    startLocation = presented.singleRoot
-                        ?: presented.resolution.tabs.firstOrNull()?.location
-                        ?: shellConfig.startLocation,
-                    navigatorHostId = R.id.main_nav_host
-                )
-            )
-        }
-        return ShellTabs.from(this, shellConfig, presented.resolution.tabs).navigatorConfigurations
+        val mainConfig = NavigatorConfiguration(
+            name = "main",
+            startLocation = presented.singleRoot
+                ?: presented.resolution.tabs.firstOrNull()?.location
+                ?: shellConfig.startLocation,
+            navigatorHostId = R.id.main_nav_host
+        )
+        val tabConfigs = ShellTabs.from(this, shellConfig, presented.resolution.tabs)
+            .navigatorConfigurations
+        return NavigatorHostPlan.order(mainConfig, tabConfigs, presented.resolution.tabs.size)
     }
 
     override fun onDestroy() {
