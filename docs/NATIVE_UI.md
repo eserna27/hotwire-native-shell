@@ -2,7 +2,7 @@
 
 Hotwire Native draws the top bar itself: a `UINavigationBar` on iOS and the Hotwire toolbar on Android. The back button and the screen title live there. The Rails app (`eserna27/blogs`) must hide its HTML navbar inside that shell and must set a document title the native bar can show as-is.
 
-This repository registers the native bridge components and records the markup. It does not change the Rails app.
+This repository registers the native bridge components and records the markup. The Rails helpers that emit it live in [`hotwire_native_shell-rails`](../rails/README.md): `hotwire_native_app?`, `native_render_web_nav?`, `native_document_title`, `native_tabs`, `native_menu`, and `native_overflow_menu`.
 
 ## Detect the shell
 

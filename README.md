@@ -33,7 +33,8 @@ docs/NATIVE_UI.md         native bar, hidden web navbar, titles
 android/                  Hotwire Native Android app
 ios/                      Hotwire Native iOS app
 flavors/itsjustmy/        sample flavor (bundle id in Gradle and in the Xcode target; JSON lives here)
-rails-example/            sketch that serves GET /native/config
+rails/                    hotwire_native_shell-rails gem (install this in a Rails app)
+rails-example/            sketch that serves GET /native/config without Rails
 ```
 
 ## Contract
@@ -122,7 +123,7 @@ That command needs Xcode. It does not run on Linux. Details, the simulator clear
 
 ## Rails
 
-The sketch in [rails-example/](rails-example/README.md) serves the flavor JSON and both path-configuration URLs. Copy the controller and the routes into the real app when you are ready. Until `https://itsjustmy.blog/native/config` exists, the installed app uses the JSON bundled with it.
+Install [`hotwire_native_shell-rails`](rails/README.md) in the Rails app (`rails g hotwire_native_shell:install`). It serves `GET /native/config`, both path-configuration URLs, the bridge helpers, and device-token push. The sketch in [rails-example/](rails-example/README.md) is the same contract without a full Rails app, for a local curl check. Until `https://itsjustmy.blog/native/config` exists, the installed app uses the JSON bundled with it.
 
 ## Another client
 

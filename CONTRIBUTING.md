@@ -8,5 +8,6 @@ This is a small MIT shell for our own Rails apps. Issues and pull requests are w
 - Android: from `android/`, run `./gradlew assembleDebug` on JDK 17+.
 - iOS: open `ios/HotwireNativeShell.xcodeproj` and run the `HotwireNativeShell` scheme. The `xcodebuild` line is in `ios/README.md`. It needs a Mac.
 - The JSON shape, and the iOS wiring to it, can be checked without the Android SDK or Xcode: `python3 script/check_contract.py`.
+- The Rails gem: `cd rails && bundle exec rake test`.
 
 itsjustmy is the pilot flavor. A new client is a flavor, not a fork. See `docs/NEW_APP.md`.

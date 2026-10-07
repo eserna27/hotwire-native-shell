@@ -1,0 +1,18 @@
+/* Backup hides. The layout should omit nav.navbar when hotwire_native_app? is true.
+   data-bridge-platform appears only after the native adapter connects. */
+
+html[data-bridge-platform] nav.navbar {
+  display: none;
+}
+
+[data-bridge-components~="overflow-menu"] [data-controller~="bridge--overflow-menu"] {
+  display: none;
+}
+
+[data-bridge-components~="tabs"] [data-controller~="bridge--tabs"] {
+  display: none;
+}
+
+[data-bridge-components~="share"] [data-controller~="bridge--share"] {
+  display: none;
+}

@@ -49,6 +49,8 @@ export default class extends BridgeComponent {
 </div>
 ```
 
+The Rails gem ships this controller and POSTs `{ token, provider, platform }` to `POST /native/device_tokens`. It drops `provider: "placeholder"` and the literal `placeholder-not-a-device-token`. See [rails/README.md](../rails/README.md).
+
 When you add FCM in a client app:
 
 1. Create a Firebase Android app whose id is that flavor's `applicationId` (`blog.itsjustmy.app` for the pilot).

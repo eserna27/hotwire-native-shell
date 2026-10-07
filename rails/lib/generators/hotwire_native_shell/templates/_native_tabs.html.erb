@@ -1,0 +1,6 @@
+<%# Render from the layout with render "shared/native_tabs".
+    Emits nothing in a normal browser. On a Hotwire Native request this sends
+    the tab list for the current auth state, including an empty list, so the
+    shell can drop the bar. Share, menu, haptic, and notification-token stay
+    on the pages that need them. %>
+<%= native_tabs %>

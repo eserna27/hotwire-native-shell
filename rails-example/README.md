@@ -2,6 +2,8 @@
 
 Minimal server for the shell contract. It is not a generated Rails application and it is not itsjustmy.blog.
 
+A real Rails app installs the gem in [`rails/`](../rails/README.md) (`hotwire_native_shell-rails`) instead of copying this sketch.
+
 ## Run the sketch
 
 From `rails-example/`:
