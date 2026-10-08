@@ -63,6 +63,8 @@ create("nagama") {
 }
 ```
 
+The flavor does not set `minSdk`, `compileSdk`, or `targetSdk`. Those live on the module: `minSdk` 28, `compileSdk` 36, `targetSdk` 36. `bin/new-app` only inserts the `create` block and the assets `sourceSet`. A new flavor targets API 36 because the module does. Do not lower `targetSdk`, and do not set `windowOptOutEdgeToEdgeEnforcement`. How the toolbar, bottom tabs, and WebView stay out of the system bars is in [NATIVE_UI.md](NATIVE_UI.md) and [android/README.md](../android/README.md).
+
 Point its assets at the new directory:
 
 ```kotlin

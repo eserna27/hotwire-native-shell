@@ -2,7 +2,7 @@
 
 Hotwire Native Android app. Open the `android/` directory in Android Studio (Empty Views Activity is already done; this folder is the project).
 
-Pinned to [Hotwire Native Android 1.3.1](https://github.com/hotwired/hotwire-native-android/releases/tag/1.3.1) (`dev.hotwire:core` and `dev.hotwire:navigation-fragments`). Toolchain matches that project's demo: Android Gradle Plugin 8.13.2, Kotlin 2.3.0, Gradle 9.2.0, `minSdk` 28, `compileSdk` 35. JDK 17 or newer.
+Pinned to [Hotwire Native Android 1.3.1](https://github.com/hotwired/hotwire-native-android/releases/tag/1.3.1) (`dev.hotwire:core` and `dev.hotwire:navigation-fragments`). Toolchain: Android Gradle Plugin 8.13.2, Kotlin 2.3.0, Gradle 9.2.0, `minSdk` 28, `compileSdk` 36, `targetSdk` 36. JDK 17 or newer. AGP 8.13 already accepts API 36 (the minimum that does is 8.9.1), so the plugin, wrapper, Kotlin, AndroidX, and Hotwire versions stay on those pins. Every product flavor, including ones `bin/new-app` writes, inherits this `targetSdk`.
 
 ## Build
 
@@ -34,6 +34,18 @@ Android Studio writes `local.properties` with your SDK path. That file is gitign
 5. A background request stores `GET /native/config`. The cache is used on the next cold start. If the site does not serve the route yet, the bundled JSON stays in effect.
 
 WebView debugging and Hotwire logs are on in debug builds only.
+
+## Android 16
+
+Play requires target API 36. The module sets `compileSdk` and `targetSdk` to 36. `minSdk` stays 28.
+
+`MainActivity` calls `enableEdgeToEdge()` before `super.onCreate()`. Android 16 disables `windowOptOutEdgeToEdgeEnforcement` for apps that target 36, and this project does not set that attribute. `ShellWindowInsets` pads the activity root by the status bar, navigation bar, display cutout, and keyboard, then clears the system-bar insets before they reach the Hotwire toolbar and the bottom bar. Those views would otherwise pad themselves a second time. The WebView is laid out inside that padding, so the page is not drawn under the system bars. IME insets are still forwarded: Hotwire hides the bottom bar while the keyboard is up, and the root padding keeps the page above the keyboard.
+
+Predictive back stays on. The manifest sets `android:enableOnBackInvokedCallback="true"`. Hotwire registers an `OnBackPressedCallback` that pops the navigator when it has a previous entry, and leaves the callback disabled at the root so the system can play the back-to-home animation. `onBackPressed` and `KEYCODE_BACK` are not used.
+
+The launch screen is the AndroidX splash screen (`Theme.SplashScreen`, `androidx.core:core-splashscreen:1.2.0`). `installSplashScreen()` runs before `super.onCreate()`, and the splash stays up until the first visit renders or eight seconds pass. API 36 does not replace that API.
+
+Android 16 also ignores orientation, resizability, and aspect-ratio locks on screens at least 600dp wide. This shell does not set those locks. `elegantTextHeight` is left at the platform default.
 
 ## Secrets
 

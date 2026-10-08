@@ -77,6 +77,8 @@ def check_generated_flavor(slug: str) -> None:
         fail("gradle flavor")
     if f"../flavors/{slug}/assets" not in gradle:
         fail("flavor assets are not wired into the Android source set")
+    if "compileSdk = 36" not in gradle or "targetSdk = 36" not in gradle:
+        fail("Android compileSdk and targetSdk must be 36")
 
 
 def main() -> None:
@@ -201,6 +203,16 @@ def main() -> None:
         fail("flavor assets are not wired into the Android source set")
     if "dev.hotwire:core:1.3.1" not in gradle or "dev.hotwire:navigation-fragments:1.3.1" not in gradle:
         fail("Hotwire Native Android 1.3.1")
+    if "compileSdk = 36" not in gradle or "targetSdk = 36" not in gradle:
+        fail("Android compileSdk and targetSdk must be 36")
+    if "minSdk = 28" not in gradle:
+        fail("minSdk")
+    manifest = (ROOT / "android" / "app" / "src" / "main" / "AndroidManifest.xml").read_text()
+    themes = (ROOT / "android" / "app" / "src" / "main" / "res" / "values" / "themes.xml").read_text()
+    if "windowOptOutEdgeToEdgeEnforcement" in gradle + manifest + themes:
+        fail("edge-to-edge opt-out is set")
+    if 'android:enableOnBackInvokedCallback="true"' not in manifest:
+        fail("predictive back callback")
 
     registrar = (ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "BridgeRegistrar.kt").read_text()
     for component in ("notification-token", "share", "haptic", "menu", "overflow-menu", "tabs"):

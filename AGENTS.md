@@ -46,7 +46,7 @@ Also: [flavors/itsjustmy/README.md](flavors/itsjustmy/README.md), [CONTRIBUTING.
 | Launcher name and icon | `android/app/src/itsjustmy/` and the iOS target (`app_name` / `CFBundleDisplayName` is **itsjustmy.blog**) |
 | iOS project | `ios/HotwireNativeShell.xcodeproj`, scheme `HotwireNativeShell` |
 
-Open `android/` in Android Studio. JDK 17 or newer.
+Open `android/` in Android Studio. JDK 17 or newer. The Android module compiles and targets API 36 (`compileSdk` / `targetSdk` 36, `minSdk` 28). Play rejects a target below 36. Every flavor inherits that target, including flavors `bin/new-app` adds. Do not set `windowOptOutEdgeToEdgeEnforcement`; Android 16 ignores it. The activity root is padded so the toolbar, bottom tabs, and WebView stay inside the system bars. See [android/README.md](android/README.md).
 
 ```sh
 cd android
@@ -82,7 +82,7 @@ Checklist:
 
 1. Copy `flavors/itsjustmy` to `flavors/<name>`.
 2. Edit `flavors/<name>/assets/native/config.json`: `name`, `base_url`, `start_path`, optional cold-start `tabs`, `bridges`, and `push`. Leave bridge flags you are not using set to `false`.
-3. In `android/app/build.gradle.kts`, next to `itsjustmy`, add a product flavor on dimension `client` with that client's `applicationId`, and set `assets.srcDir` to `../flavors/<name>/assets`.
+3. In `android/app/build.gradle.kts`, next to `itsjustmy`, add a product flavor on dimension `client` with that client's `applicationId`, and set `assets.srcDir` to `../flavors/<name>/assets`. Leave `compileSdk` and `targetSdk` at 36. A flavor does not get its own SDK level.
 4. Add `android/app/src/<name>/res/values/strings.xml` with `app_name`, and a launcher icon. Copy the itsjustmy launcher assets until that client has its own icon. The splash icon is `res/drawable/ic_splash.xml` (itsjustmy layers the launcher artwork) and the splash color is `@color/splash_background` in that flavor's `colors.xml`. On iOS, replace `SplashIcon` and `SplashBackground` in the asset catalog. See [docs/NEW_APP.md](docs/NEW_APP.md).
 5. That client's Rails app installs [rails/](rails/README.md) (`hotwire_native_shell-rails`) so it serves `GET /native/config`, `GET /configurations/android_v1.json`, and `GET /configurations/ios_v1.json`. The JSON must match [docs/CONTRACT.md](docs/CONTRACT.md). The [rails-example/](rails-example/README.md) sketch is only the curl demo.
 6. Build that flavor only. Gradle capitalizes the flavor in the task name: `cd android && ./gradlew :app:assembleNagamaDebug` for a flavor named `nagama`.

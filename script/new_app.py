@@ -1009,7 +1009,9 @@ def checklist(spec: dict) -> str:
         f"The bundled base_url is {spec['base_url']}.",
         "4. Store screenshots. Edit store/brand.yml (copy, capture URLs, drop-ins such as "
         "app_editor.png and ipad_editor.png), then follow docs/STORE_SCREENSHOTS.md.",
-        f"5. Build this client only: cd android && ./gradlew :app:{task}",
+        f"5. Build this client only: cd android && ./gradlew :app:{task}. "
+        "The flavor inherits compileSdk 36 and targetSdk 36 from android/app/build.gradle.kts. "
+        "Do not lower them. Android 16 ignores windowOptOutEdgeToEdgeEnforcement.",
     ]
     if spec["push"]["enabled"]:
         lines.append(

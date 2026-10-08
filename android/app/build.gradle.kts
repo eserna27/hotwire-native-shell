@@ -9,11 +9,11 @@ plugins {
 
 android {
     namespace = "dev.hotwire.nativeshell"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
     }
