@@ -17,7 +17,6 @@ import dev.hotwire.navigation.navigator.Navigator
 import dev.hotwire.navigation.navigator.NavigatorConfiguration
 import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
 import dev.hotwire.navigation.tabs.navigatorConfigurations
-import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.nativeshell.config.NativeConfig
 import dev.hotwire.nativeshell.config.NavigatorHostPlan
 import dev.hotwire.nativeshell.config.PresentedTabs
@@ -49,12 +48,12 @@ class MainActivity : HotwireActivity() {
         logTabs(presented)
         if (presented.resolution.tabs.size < 2) {
             setContentView(R.layout.activity_main)
-            findViewById<View>(R.id.main_nav_host).applyDefaultImeWindowInsets()
+            ShellWindowInsets.apply(findViewById(R.id.root))
             return
         }
 
         setContentView(R.layout.activity_main_tabs)
-        findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
+        ShellWindowInsets.apply(findViewById(R.id.root))
         val controller = HotwireBottomNavigationController(
             activity = this,
             view = findViewById(R.id.bottom_nav),

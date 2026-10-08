@@ -106,7 +106,7 @@ cd android
 ./gradlew assembleDebug
 ```
 
-JDK 17 or newer. Details, signing, and the emulator cleartext exception are in [android/README.md](android/README.md).
+JDK 17 or newer. The Android app compiles and targets API 36 (Android 16); `minSdk` stays 28. New flavors inherit that target. Details, signing, edge-to-edge insets, and the emulator cleartext exception are in [android/README.md](android/README.md).
 
 ## iOS
 

@@ -95,6 +95,16 @@ Hide the HTML trigger once the component is active:
 
 `share`, when its flag is on, is a separate bar button beside the ellipsis. The ellipsis stays the trailing item.
 
+## Android system bars
+
+The Android shell targets API 36. Android 16 enforces edge-to-edge and ignores `windowOptOutEdgeToEdgeEnforcement`, so the shell does not opt out. `MainActivity` calls `enableEdgeToEdge()`. `ShellWindowInsets` then pads the activity root by the status bar, the navigation bar, the display cutout, and the keyboard.
+
+That padding is what keeps the Hotwire toolbar, the bottom tabs, and the WebView from drawing under the system bars. The same insets are cleared before they reach those child views, because the toolbar (`fitsSystemWindows` on Hotwire's app bar) and the bottom bar would pad themselves again. The keyboard inset is still delivered: the bottom bar hides while the keyboard is up, and the page stays above it. A modal also hides the bottom bar; the root padding still holds the page above the navigation bar.
+
+Predictive back is enabled (`android:enableOnBackInvokedCallback="true"`). Hotwire pops with `OnBackPressedCallback` when the navigator has a previous entry. At the root screen the system plays the back-to-home animation. The launch screen is the AndroidX splash screen API, installed before `super.onCreate()`.
+
+Rails does not draw those bars. It still hides `nav.navbar` and the HTML tab list, as below, so the page does not stack a second chrome on top of the native one.
+
 ## Bottom tabs
 
 The live tab list is the `tabs` bridge, always registered, the same way as `menu`. Rails declares it in the page. The shell renders a Material bottom bar on Android and a tab bar on iOS. There is no `/native/config` flag. The Stimulus controller is in [BRIDGES.md](BRIDGES.md). The field rules, the five-tab cap, and the icon names are in [CONTRACT.md](CONTRACT.md).
