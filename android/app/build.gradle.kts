@@ -92,6 +92,9 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    // Play Billing. The subscription bridge uses it when bridges.subscription is true.
+    // The library merges com.android.vending.BILLING into every flavor.
+    implementation("com.android.billingclient:billing:9.1.0")
 
     testImplementation("junit:junit:4.13.2")
 }

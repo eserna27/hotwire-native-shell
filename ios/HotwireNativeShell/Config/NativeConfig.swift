@@ -442,6 +442,7 @@ struct BridgeFlags: Decodable, Sendable {
     var biometric = false
     var clipboard = false
     var fileDownload = false
+    var subscription = false
 
     init() {}
 
@@ -453,6 +454,7 @@ struct BridgeFlags: Decodable, Sendable {
         case biometric
         case clipboard
         case fileDownload = "file_download"
+        case subscription
     }
 
     init(from decoder: Decoder) throws {
@@ -464,6 +466,7 @@ struct BridgeFlags: Decodable, Sendable {
         biometric = try container.decodeIfPresent(Bool.self, forKey: .biometric) ?? false
         clipboard = try container.decodeIfPresent(Bool.self, forKey: .clipboard) ?? false
         fileDownload = try container.decodeIfPresent(Bool.self, forKey: .fileDownload) ?? false
+        subscription = try container.decodeIfPresent(Bool.self, forKey: .subscription) ?? false
     }
 }
 

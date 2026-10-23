@@ -34,7 +34,8 @@
     "camera": false,
     "biometric": false,
     "clipboard": false,
-    "file_download": false
+    "file_download": false,
+    "subscription": false
   },
   "push": {
     "enabled": true,

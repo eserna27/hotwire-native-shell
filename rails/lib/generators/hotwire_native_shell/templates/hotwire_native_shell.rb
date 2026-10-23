@@ -33,7 +33,8 @@ HotwireNativeShell.configure do |config|
     camera: false,
     biometric: false,
     clipboard: false,
-    file_download: false
+    file_download: false,
+    subscription: false
   }
 
   config.push_enabled = false

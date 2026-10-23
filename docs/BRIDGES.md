@@ -316,6 +316,127 @@ export default class extends BridgeComponent {
 
 Ship this file from the Rails app (`eserna27/blogs`). This repository does not. Put the nav in the layout and mark only the current section `data-bridge-active="true"`. An inner page that repeats the same list keeps the stacks. Omit `active` on a page that belongs to no tab. Path configuration still applies inside each tab. `menu` and `overflow-menu` stay on that tab's top bar. A modal path does not change the bar.
 
+## subscription
+
+JSON key `subscription`. Component name `subscription`. itsjustmy leaves the flag off. Turn it on when the host app is ready to sell a store subscription. The shell has no product catalog and no Pro or Stripe logic. The page sends store subscription product ids. iOS buys with StoreKit 2. Android buys with Play Billing Library 9.1.0 (`ProductType.SUBS`).
+
+The buttons stay in the page. They open the store sheet. Do not hide `[data-controller~="bridge--subscription"]`.
+
+Events from the web, and the replies, use the same event name: `purchase`, `restore`, `status`, `finish`. `disconnect` is ignored.
+
+`purchase` needs `product_id` (or the first `product_ids` entry). `restore` and `status` take the same payload and may omit it. An empty product list on `status` or `restore` returns every current subscription. `finish` is how the page tells the shell that the server accepted a transaction.
+
+```json
+{
+  "product_id": "monthly",
+  "product_ids": ["monthly", "yearly"],
+  "base_plan_id": "monthly",
+  "offer_token": "optional-play-offer-token",
+  "account_token": "6F9619FF-8B86-D011-B42D-00CF4FC964FF"
+}
+```
+
+`base_plan_id` and `offer_token` are Play Billing only. iOS ignores them. When both are omitted, Android uses the first base plan's own offer (the offer with no offer id), not an introductory offer. Pass `base_plan_id` when the Play product has more than one base plan. `offer_token` wins when the page already resolved one.
+
+`account_token` is an opaque id for the signed-in user, not an email. A UUID is attached on both stores (StoreKit `appAccountToken`, Play `obfuscatedAccountId`). Any other string up to 64 characters is attached on Android only.
+
+`finish` uses the same fields plus the transaction the store returned:
+
+```json
+{
+  "product_id": "monthly",
+  "transaction_id": "2000000123456789",
+  "purchase_token": "play-purchase-token"
+}
+```
+
+iOS matches `transaction_id` and calls `Transaction.finish()`. Android matches `purchase_token` (then `transaction_id` as the Play order id, then `product_id`) and calls `acknowledgePurchase`. A purchase that is already finished replies `success`.
+
+Every reply has this shape. A field the store does not set is `null`.
+
+```json
+{
+  "status": "success",
+  "platform": "ios",
+  "product_id": "monthly",
+  "product_ids": ["monthly", "yearly"],
+  "error": null,
+  "bundle_id": "blog.example.app",
+  "package_name": null,
+  "transactions": [
+    {
+      "product_id": "monthly",
+      "transaction_id": "2000000123456789",
+      "original_transaction_id": "2000000123456789",
+      "purchase_token": null,
+      "order_id": null,
+      "signed_transaction": "<StoreKit 2 JWS>",
+      "original_json": null,
+      "signature": null,
+      "state": "purchased",
+      "expires_at": "2026-11-23T00:00:00Z",
+      "acknowledged": false,
+      "environment": "sandbox",
+      "account_token": "6F9619FF-8B86-D011-B42D-00CF4FC964FF"
+    }
+  ]
+}
+```
+
+`status` is `success`, `cancelled`, `pending`, or `error`. `success` means the store answered. It does not by itself mean the user is entitled. Entitlement is a transaction with `state` `purchased`. `cancelled` is the user dismissing the sheet. `pending` is Ask to Buy or a Play pending purchase. `error` is a stable code in `error`:
+
+| `error` | Meaning |
+| --- | --- |
+| `missing_product_id` | `purchase` had no product id. |
+| `invalid_payload` | The message was not the JSON object above. |
+| `product_unavailable` | The store has no subscription with that id. |
+| `offer_unavailable` | Play had no offer for that product, base plan, or token. |
+| `store_unavailable` | Billing or StoreKit is unavailable on this device. |
+| `verification_failed` | StoreKit could not verify the transaction on device. |
+| `already_owned` | Play already has this subscription. `transactions` still lists it when the query succeeds. |
+| `network` | The store could not be reached. |
+| `not_found` | `finish` did not find that transaction. |
+| `busy` | A Play purchase sheet is already open. |
+| `unknown` | Anything else. |
+
+`platform` is `ios` or `android`. `bundle_id` is set on iOS. `package_name` is set on Android (the flavor `applicationId`). Transaction `state` is `purchased`, `pending`, `expired`, or `revoked`.
+
+Verify on the server before granting access, then tell the page to `finish`:
+
+- iOS: `signed_transaction` is the StoreKit 2 JWS (`VerificationResult.jwsRepresentation`). Verify it with Apple's App Store Server library or the App Store Server API. `transaction_id` and `original_transaction_id` identify the subscription. `expires_at` is ISO-8601 when the transaction has an expiration. `environment` is `sandbox`, `production`, or `xcode` on iOS 16 and later.
+- Android: `purchase_token` plus `package_name` is what Play Developer API `purchases.subscriptionsv2.get` needs. `order_id` is the Play order id. `original_json` and `signature` are the Play-signed purchase payload. Expiry is not on this payload; the Developer API returns it. `acknowledged` is Play's acknowledgement flag.
+
+`finish` acknowledges the Play purchase and finishes the StoreKit transaction. Do that after the server has granted the entitlement. Until then, `status` returns the same transaction with `acknowledged: false`. Play refunds a purchase that is still unacknowledged after three days. `restore` on iOS calls `AppStore.sync()` and then reads current entitlements. `restore` on Android is the same query as `status` (Play has no separate restore sheet). `status` does not prompt.
+
+```javascript
+import { BridgeComponent } from "@hotwired/hotwire-native-bridge"
+
+export default class extends BridgeComponent {
+  static component = "subscription"
+
+  purchase(event) {
+    event.preventDefault()
+    this.send("purchase", { product_id: "monthly", product_ids: ["monthly"] }, (message) => {
+      // message.data.status, message.data.transactions
+    })
+  }
+}
+```
+
+```html
+<div data-controller="bridge--subscription"
+     data-bridge-product-id="monthly"
+     data-bridge-product-ids="monthly yearly"
+     data-bridge-base-plan-id="monthly"
+     data-bridge-account-token="6F9619FF-8B86-D011-B42D-00CF4FC964FF"
+     data-bridge-status="true">
+  <button type="button" data-action="bridge--subscription#purchase">Subscribe</button>
+  <button type="button" data-action="bridge--subscription#restore">Restore purchases</button>
+</div>
+```
+
+`data-bridge-status="true"` (the default when the attribute is omitted in the gem helper) sends `status` on connect. Set it to `false` to skip that. The gem's controller dispatches `hotwire-native-shell:subscription` with `detail.event` plus the reply. After the server accepts, dispatch `hotwire-native-shell:subscription-finish` on the same element with `detail` set to one transaction, or to `{ transactions: [...] }`. The Rails helpers are `native_subscription`, `hotwire_native_ios?`, and `hotwire_native_android?`. See [rails/README.md](../rails/README.md).
+
 ## Reserved, off
 
 These flags exist so flavors can say "not in this app" without a shell change. Setting one to `true` does not register a component yet. Android logs the name and continues.

@@ -16,3 +16,5 @@ html[data-bridge-platform] nav.navbar {
 [data-bridge-components~="share"] [data-controller~="bridge--share"] {
   display: none;
 }
+
+/* bridge--subscription stays visible. Those buttons open the store sheet. */

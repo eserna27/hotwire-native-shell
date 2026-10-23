@@ -58,7 +58,8 @@ itsjustmy, the pilot:
     "camera": false,
     "biometric": false,
     "clipboard": false,
-    "file_download": false
+    "file_download": false,
+    "subscription": false
   },
   "push": {
     "enabled": true,
@@ -181,6 +182,7 @@ Boolean flags. The native component name (the Stimulus `static component` value)
 | `biometric` | `biometric` | off | not registered |
 | `clipboard` | `clipboard` | off | not registered |
 | `file_download` | `file-download` | off | not registered |
+| `subscription` | `subscription` | off | Play Billing when the flag is on. iOS uses StoreKit 2. |
 
 A flag that is `false` or absent is not registered, so it does not show up in the `bridge-components:` user-agent list. The web bridge then leaves the HTML in place. See [BRIDGES.md](BRIDGES.md).
 

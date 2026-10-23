@@ -223,6 +223,19 @@ class NativeConfigTest {
         assertEquals("t5", overflow.resolution.tabs.last().id)
     }
 
+    @Test
+    fun subscriptionBridgeFlagDefaultsOff() {
+        val missing = decode("""{"name":"itsjustmy","base_url":"https://itsjustmy.blog"}""")
+        assertEquals(false, missing.bridges.subscription)
+
+        val enabled = decode(
+            """
+            {"name":"itsjustmy","base_url":"https://itsjustmy.blog","bridges":{"subscription":true}}
+            """.trimIndent()
+        )
+        assertEquals(true, enabled.bridges.subscription)
+    }
+
     private fun decode(body: String): NativeConfig {
         return json.decodeFromString(NativeConfig.serializer(), body)
     }

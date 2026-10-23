@@ -52,6 +52,36 @@ module HotwireNativeShell
       tag.div(hidden: true, data: { controller: "bridge--notification-token", bridge_url: url })
     end
 
+    # Purchase and restore buttons for the subscription bridge. Product ids are
+    # store subscription ids from the host app. Renders nothing in a browser,
+    # and nothing when +product_id+ is blank. The buttons stay on the page:
+    # they open the store sheet, they do not replace it.
+    def native_subscription(product_id:, label: "Subscribe", restore_label: "Restore purchases", product_ids: nil, base_plan_id: nil, offer_token: nil, account_token: nil, restore: true, status: true)
+      return unless hotwire_native_app?
+
+      primary = product_id.to_s.strip
+      return if primary.empty?
+
+      ids = Array(product_ids).map { |id| id.to_s.strip }.reject(&:empty?)
+      data = {
+        controller: "bridge--subscription",
+        bridge_product_id: primary,
+        bridge_status: status ? "true" : "false"
+      }
+      data[:bridge_product_ids] = ids.join(" ") if ids.any?
+      data[:bridge_base_plan_id] = base_plan_id.to_s if base_plan_id.present?
+      data[:bridge_offer_token] = offer_token.to_s if offer_token.present?
+      data[:bridge_account_token] = account_token.to_s if account_token.present?
+
+      content_tag(:div, data: data) do
+        buttons = [ button_tag(label, type: "button", data: { action: "bridge--subscription#purchase" }) ]
+        if restore
+          buttons << button_tag(restore_label, type: "button", data: { action: "bridge--subscription#restore" })
+        end
+        safe_join(buttons)
+      end
+    end
+
     def native_haptic(feedback: "success", label: "Tap", **attributes, &block)
       return unless hotwire_native_app?
 

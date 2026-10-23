@@ -8,5 +8,16 @@
 <%= native_share(url: @share_url, title: @share_title) %>
 <%= native_notification_token %>
 <%= native_haptic(feedback: "success", label: "Saved") %>
+<span id="native-platform"><%= hotwire_native_platform || "web" %></span>
+<%= native_subscription(product_id: "  ") %>
+<%= native_subscription(
+      product_id: "monthly",
+      product_ids: %w[monthly yearly],
+      base_plan_id: "monthly-base",
+      offer_token: "offer-token",
+      account_token: "6F9619FF-8B86-D011-B42D-00CF4FC964FF",
+      label: "Subscribe",
+      restore_label: "Restore purchases"
+    ) %>
 <% if native_oauth_allowed? %>oauth-allowed<% end %>
 <%= native_account_deletion_link("Delete account") %>

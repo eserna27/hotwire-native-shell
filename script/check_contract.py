@@ -22,6 +22,7 @@ EXPECTED_BRIDGE_KEYS = [
     "biometric",
     "clipboard",
     "file_download",
+    "subscription",
 ]
 
 
@@ -132,7 +133,7 @@ def main() -> None:
         fail(f"bridge keys {list(bridges)}")
     if bridges["notification_token"] is not True or bridges["share"] is not True or bridges["haptic"] is not True:
         fail("expected notification_token, share, and haptic on")
-    for key in ("camera", "biometric", "clipboard", "file_download"):
+    for key in ("camera", "biometric", "clipboard", "file_download", "subscription"):
         if bridges[key] is not False:
             fail(f"{key} should be off")
     if config["push"] != {"enabled": True, "topics": ["posts"]}:
@@ -195,6 +196,8 @@ def main() -> None:
     bridges_doc = (ROOT / "docs" / "BRIDGES.md").read_text()
     if 'static component = "tabs"' not in bridges_doc:
         fail("bridges doc missing tabs controller")
+    if 'static component = "subscription"' not in bridges_doc or "signed_transaction" not in bridges_doc:
+        fail("bridges doc missing subscription contract")
 
     gradle = (ROOT / "android" / "app" / "build.gradle.kts").read_text()
     if 'applicationId = "blog.itsjustmy.app"' not in gradle:
@@ -215,9 +218,15 @@ def main() -> None:
         fail("predictive back callback")
 
     registrar = (ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "BridgeRegistrar.kt").read_text()
-    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu", "tabs"):
+    for component in ("notification-token", "share", "haptic", "subscription", "menu", "overflow-menu", "tabs"):
         if f'"{component}"' not in registrar:
             fail(f"missing bridge registration {component}")
+    if "com.android.billingclient:billing:9.1.0" not in gradle:
+        fail("Play Billing Library")
+    if not (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "SubscriptionComponent.kt"
+    ).is_file():
+        fail("missing Android SubscriptionComponent")
     if not (
         ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "TabsComponent.kt"
     ).is_file():
@@ -241,6 +250,8 @@ def main() -> None:
         fail("iOS flavor folder reference")
     if "TabsComponent.swift in Sources" not in ios_project:
         fail("iOS TabsComponent is not in the target")
+    if "SubscriptionComponent.swift in Sources" not in ios_project:
+        fail("iOS SubscriptionComponent is not in the target")
     if "CODE_SIGN_ENTITLEMENTS" in ios_project or "aps-environment" in ios_project:
         fail("iOS push entitlement")
 
@@ -258,7 +269,7 @@ def main() -> None:
 
     bridge_dir = ROOT / "ios" / "HotwireNativeShell" / "Bridge"
     bridge_swift = "\n".join(path.read_text() for path in bridge_dir.glob("*.swift"))
-    for component in ("notification-token", "share", "haptic", "menu", "overflow-menu", "tabs"):
+    for component in ("notification-token", "share", "haptic", "subscription", "menu", "overflow-menu", "tabs"):
         if f'"{component}"' not in bridge_swift:
             fail(f"missing iOS bridge registration {component}")
     registrar_swift = (bridge_dir / "BridgeRegistrar.swift").read_text()
@@ -269,6 +280,7 @@ def main() -> None:
         "MenuComponent",
         "OverflowMenuComponent",
         "TabsComponent",
+        "SubscriptionComponent",
     ):
         if f"{component_type}.self" not in registrar_swift:
             fail(f"missing iOS bridge type {component_type}")
@@ -280,6 +292,16 @@ def main() -> None:
         fail("native UI doc missing detection or title suffix")
     if "nav.navbar" not in native_ui_text:
         fail("native UI doc missing navbar hide target")
+
+    subscription_swift = (bridge_dir / "SubscriptionComponent.swift").read_text()
+    for phrase in ("import StoreKit", "signed_transaction", '"purchase"', '"restore"', '"status"', '"finish"'):
+        if phrase not in subscription_swift:
+            fail(f"iOS subscription bridge missing {phrase}")
+    subscription_kotlin = (
+        ROOT / "android" / "app" / "src" / "main" / "kotlin" / "dev" / "hotwire" / "nativeshell" / "bridge" / "SubscriptionComponent.kt"
+    ).read_text()
+    if "Play Billing" not in subscription_kotlin or '"finish"' not in subscription_kotlin:
+        fail("Android subscription bridge")
 
     token_swift = (ROOT / "ios" / "HotwireNativeShell" / "Bridge" / "NotificationTokenComponent.swift").read_text()
     if "placeholder-not-a-device-token" not in token_swift or '"placeholder"' not in token_swift:
@@ -334,6 +356,7 @@ def main() -> None:
         ("share", "share_controller.js"),
         ("haptic", "haptic_controller.js"),
         ("notification-token", "notification_token_controller.js"),
+        ("subscription", "subscription_controller.js"),
     ):
         source = (js_root / filename).read_text()
         if f'static component = "{component}"' not in source:

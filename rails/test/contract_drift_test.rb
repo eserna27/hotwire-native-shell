@@ -13,7 +13,7 @@ class ContractDriftTest < ActiveSupport::TestCase
 
     HotwireNativeShell::Contract::COMPONENT_NAMES.each do |key, component|
       assert_includes HotwireNativeShell::Contract::BRIDGE_KEYS, key
-      if %w[notification-token share haptic].include?(component)
+      if %w[notification-token share haptic subscription].include?(component)
         source = File.read(root.join("rails/app/javascript/hotwire_native_shell/bridge/#{component.tr("-", "_")}_controller.js"))
         assert_includes source, %(static component = "#{component}")
       end
