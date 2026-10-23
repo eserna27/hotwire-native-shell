@@ -27,6 +27,9 @@ enum BridgeRegistrar {
         if flags.haptic {
             types.append(HapticComponent.self)
         }
+        if flags.subscription {
+            types.append(SubscriptionComponent.self)
+        }
 
         let waiting = unimplemented(flags)
         if !waiting.isEmpty {

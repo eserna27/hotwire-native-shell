@@ -206,7 +206,8 @@ data class BridgeFlags(
     val camera: Boolean = false,
     val biometric: Boolean = false,
     val clipboard: Boolean = false,
-    @SerialName("file_download") val fileDownload: Boolean = false
+    @SerialName("file_download") val fileDownload: Boolean = false,
+    val subscription: Boolean = false
 )
 
 @Serializable

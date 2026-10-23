@@ -15,6 +15,7 @@ class PayloadTest < ActiveSupport::TestCase
     assert_equal true, payload.dig("bridges", "haptic")
     assert_equal false, payload.dig("bridges", "camera")
     assert_equal false, payload.dig("bridges", "file_download")
+    assert_equal false, payload.dig("bridges", "subscription")
     assert_equal [ "posts" ], payload.dig("push", "topics")
     assert_equal HotwireNativeShell::Contract::BRIDGE_KEYS, payload["bridges"].keys
   end

@@ -5,13 +5,32 @@ module HotwireNativeShell
     extend ActiveSupport::Concern
 
     included do
-      helper_method :hotwire_native_app?, :native_signed_in?, :native_document_title,
+      helper_method :hotwire_native_app?, :hotwire_native_ios?, :hotwire_native_android?,
+                    :hotwire_native_platform, :native_signed_in?, :native_document_title,
                     :native_render_web_nav?, :native_oauth_allowed?, :native_signed_out_flow?,
                     :native_start_path if respond_to?(:helper_method)
     end
 
     def hotwire_native_app?
       request.user_agent.to_s.match?(/Hotwire Native/)
+    end
+
+    # "ios", "android", or nil. Turbo Native without Hotwire Native is nil.
+    def hotwire_native_platform
+      agent = request.user_agent.to_s
+      return unless agent.match?(/Hotwire Native/)
+      return "ios" if agent.include?("Hotwire Native iOS")
+      return "android" if agent.include?("Hotwire Native Android")
+
+      nil
+    end
+
+    def hotwire_native_ios?
+      hotwire_native_platform == "ios"
+    end
+
+    def hotwire_native_android?
+      hotwire_native_platform == "android"
     end
 
     def native_signed_in?

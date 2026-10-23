@@ -62,7 +62,8 @@ HotwireNativeShell.configure do |config|
     camera: false,
     biometric: false,
     clipboard: false,
-    file_download: false
+    file_download: false,
+    subscription: false
   }
   config.push_enabled = true
   config.push_topics = [ "posts" ]
@@ -103,6 +104,8 @@ Calling `path_rule` drops the defaults. Declare every rule you still want.
 | `native_share(url:, title:)` | `<meta data-controller="bridge--share" data-bridge-url data-bridge-title>`. |
 | `native_notification_token` | Hidden `bridge--notification-token` element. On connect it asks the shell and POSTs a real token. |
 | `native_haptic(feedback:)` | Button with `bridge--haptic#vibrate`. |
+| `native_subscription(product_id:)` | Purchase and restore buttons for the `subscription` bridge. Nothing in a browser. Nothing when `product_id` is blank. |
+| `hotwire_native_ios?` / `hotwire_native_android?` | True when the user agent is Hotwire Native for that platform. `hotwire_native_platform` is `"ios"`, `"android"`, or nil. |
 | `hotwire_native_app?` | User agent matches `Hotwire Native`. `Turbo Native` alone does not. The client id alone does not. |
 | `native_render_web_nav?` | True in a browser. Use it to omit `nav.navbar`. |
 | `native_document_title(title)` | Strips a trailing ` \| title_suffix` inside the app. |
@@ -113,6 +116,59 @@ Calling `path_rule` drops the defaults. Declare every rule you still want.
 `active` on a tab defaults to the longest matching path. A path of `/` matches the rest of that origin and loses to a longer path. A tab whose `url` is another host does not match this host. Pass `active: ->(request) { ... }` to take over; if any tab has a proc, only procs count, so a page can leave every tab unmarked.
 
 The share sheet in this shell reads `url` only (`ShareComponent` on Android and iOS). `title` is still sent. Hotwire's JSON decoder ignores unknown keys, so the current shell keeps working.
+
+## Subscriptions
+
+`bridges.subscription` registers the native component. The gem does not talk to App Store Server API or Play Developer API, and it does not grant entitlements. Product ids belong to the host app. Pass a different id per store when the stores do not share one:
+
+```erb
+<% if hotwire_native_ios? %>
+  <%= native_subscription(product_id: "monthly", account_token: current_user.subscription_token) %>
+<% elsif hotwire_native_android? %>
+  <%= native_subscription(product_id: "monthly", base_plan_id: "monthly", account_token: current_user.subscription_token) %>
+<% else %>
+  <%# the site's own web checkout %>
+<% end %>
+```
+
+`account_token` should be an opaque UUID, not an email. `native_subscription` renders:
+
+```html
+<div data-controller="bridge--subscription"
+     data-bridge-product-id="monthly"
+     data-bridge-status="true">
+  <button type="button" data-action="bridge--subscription#purchase">Subscribe</button>
+  <button type="button" data-action="bridge--subscription#restore">Restore purchases</button>
+</div>
+```
+
+Optional arguments: `product_ids:`, `base_plan_id:` (Play), `offer_token:` (Play), `account_token:`, `label:`, `restore_label:`, `restore: false`, `status: false`. Labels are the host's strings. The shell does not translate them.
+
+The Stimulus controller sends `purchase`, `restore`, and `status`. On connect it sends `status` unless `data-bridge-status="false"`. Each reply is a bubbling `hotwire-native-shell:subscription` event. `detail.event` is the bridge event. The rest is the native JSON.
+
+`detail.status` is `success`, `cancelled`, `pending`, or `error`. `success` means the store answered. A transaction with `state: "purchased"` is the entitlement. `detail.error` is a stable code (`missing_product_id`, `invalid_payload`, `product_unavailable`, `offer_unavailable`, `store_unavailable`, `verification_failed`, `already_owned`, `network`, `not_found`, `busy`, `unknown`). `detail.platform` is `ios` or `android`.
+
+Verify on the server, then finish the store transaction. iOS puts the StoreKit 2 JWS in `transactions[].signed_transaction`, plus `transaction_id`, `original_transaction_id`, `bundle_id`, and `expires_at`. Android puts the Play purchase token in `transactions[].purchase_token`, plus `order_id`, `package_name`, `original_json`, and `signature`. Field-by-field rules are in [docs/BRIDGES.md](../docs/BRIDGES.md).
+
+```javascript
+document.addEventListener("hotwire-native-shell:subscription", async (event) => {
+  const detail = event.detail
+  if (detail.status !== "success" && detail.error !== "already_owned") return
+  const response = await fetch("/subscriptions/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content },
+    body: JSON.stringify(detail)
+  })
+  if (!response.ok) return
+  event.target.dispatchEvent(new CustomEvent("hotwire-native-shell:subscription-finish", {
+    detail: { transactions: detail.transactions }
+  }))
+})
+```
+
+`/subscriptions/verify` is the host app's route. This gem does not ship it. `subscription-finish` tells the shell to call `Transaction.finish()` or Play `acknowledgePurchase`. Play refunds a purchase that is still unacknowledged after three days. The next `status` returns an unfinished transaction so the page can retry.
+
+Inside the native app, a digital subscription has to be bought through this bridge. A link out to a web checkout is the path Apple rejected under Guideline 3.1.1.
 
 ## Auth-first flow
 

@@ -12,6 +12,7 @@ module HotwireNativeShell
       biometric
       clipboard
       file_download
+      subscription
     ].freeze
 
     # JSON key => Stimulus `static component` value.
@@ -22,7 +23,8 @@ module HotwireNativeShell
       "camera" => "camera",
       "biometric" => "biometric",
       "clipboard" => "clipboard",
-      "file_download" => "file-download"
+      "file_download" => "file-download",
+      "subscription" => "subscription"
     }.freeze
 
     # Always registered by the shell. They are not keys in /native/config.

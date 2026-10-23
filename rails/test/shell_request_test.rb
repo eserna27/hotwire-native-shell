@@ -32,6 +32,8 @@ class ShellRequestTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='bridge--share']", count: 0
     assert_includes response.body, "oauth-allowed"
     assert_select "a", text: "Delete account", count: 0
+    assert_select "#native-platform", text: "web"
+    assert_select "[data-controller='bridge--subscription']", count: 0
   end
 
   test "turbo native alone is not the shell" do
@@ -39,6 +41,8 @@ class ShellRequestTest < ActionDispatch::IntegrationTest
 
     assert_includes response.body, "Hello | itsjustmy.blog"
     assert_select "[data-controller='bridge--tabs']", count: 0
+    assert_select "#native-platform", text: "web"
+    assert_select "[data-controller='bridge--subscription']", count: 0
   end
 
   test "native chrome emits tabs, share, and hides third-party login" do
@@ -65,6 +69,18 @@ class ShellRequestTest < ActionDispatch::IntegrationTest
     assert_select "button[data-controller='bridge--haptic'][data-bridge-feedback='success']", text: "Saved"
     assert_select "a[href='/users/deletion']", text: "Delete account"
     assert_not_includes response.body, "oauth-allowed"
+    assert_select "#native-platform", text: "ios"
+    assert_select "div[data-controller='bridge--subscription']", count: 1
+    assert_select "div[data-controller='bridge--subscription'][data-bridge-product-id='monthly'][data-bridge-product-ids='monthly yearly'][data-bridge-base-plan-id='monthly-base'][data-bridge-offer-token='offer-token'][data-bridge-account-token='6F9619FF-8B86-D011-B42D-00CF4FC964FF'][data-bridge-status='true']"
+    assert_select "button[data-action='bridge--subscription#purchase']", text: "Subscribe"
+    assert_select "button[data-action='bridge--subscription#restore']", text: "Restore purchases"
+  end
+
+  test "android user agent is detected for the subscription bridge" do
+    get chrome_path, headers: { "User-Agent" => "itsjustmy; Hotwire Native Android; Turbo Native Android;" }
+
+    assert_select "#native-platform", text: "android"
+    assert_select "[data-controller='bridge--subscription']"
   end
 
   test "native menu helper matches overflow markup" do

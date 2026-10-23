@@ -36,6 +36,9 @@ object BridgeRegistrar {
         if (flags.haptic) {
             factories += BridgeComponentFactory("haptic", ::HapticComponent)
         }
+        if (flags.subscription) {
+            factories += BridgeComponentFactory("subscription", ::SubscriptionComponent)
+        }
 
         val waiting = unimplemented(flags)
         if (waiting.isNotEmpty()) {

@@ -48,6 +48,7 @@ bridges:
   biometric: false
   clipboard: false
   file_download: false
+  subscription: false
 push:
   enabled: true
   topics:

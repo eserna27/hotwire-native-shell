@@ -34,6 +34,7 @@ BRIDGE_KEYS = (
     "biometric",
     "clipboard",
     "file_download",
+    "subscription",
 )
 TAB_ICONS = ("home", "posts", "search", "profile", "info")
 SLUG_RE = re.compile(r"^[a-z][a-z0-9]*$")

@@ -26,6 +26,7 @@ class InstallGeneratorTest < Rails::Generators::TestCase
       assert_match "signed_in_start_path", content
       assert_match "sign_in_with_apple", content
       assert_match "account_deletion_path", content
+      assert_match "subscription: false", content
     end
     assert_file "config/routes.rb" do |content|
       assert_match(/^\s+hotwire_native_shell$/, content)
@@ -36,6 +37,10 @@ class InstallGeneratorTest < Rails::Generators::TestCase
     assert_file "app/javascript/controllers/bridge/share_controller.js" do |content|
       assert_match 'static component = "share"', content
       assert_match "title", content
+    end
+    assert_file "app/javascript/controllers/bridge/subscription_controller.js" do |content|
+      assert_match 'static component = "subscription"', content
+      assert_match "hotwire-native-shell:subscription", content
     end
     assert_file "app/javascript/controllers/bridge/notification_token_controller.js" do |content|
       assert_match "placeholder-not-a-device-token", content
